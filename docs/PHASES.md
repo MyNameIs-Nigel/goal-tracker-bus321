@@ -8,7 +8,7 @@ The plan for taking this from a blank `create-next-app` to a live tracker at `ht
 
 | Phase | Name | Status | Target |
 |-------|------|--------|--------|
-| 0 | Foundation — tooling, CI/CD, Vercel | ☐ not started — human gates cleared (H1 ✅ H2 ✅) | Wed 9/16 |
+| 0 | Foundation — tooling, CI/CD, Vercel | 🔄 in progress — started 2026-09-16; human gates cleared (H1 ✅ H2 ✅) | Wed 9/16 |
 | 1 | Auth & roles | ☐ not started — H3 ✅; needs H4, H5 | Wed 9/16 – Thu 9/17 |
 | 2 | Goals & daily tracking | ☐ not started | Thu 9/17 – Fri 9/18 |
 | 3 | Partners, contract & vision, history | ☐ not started | Fri 9/18 – Sat 9/19 |
