@@ -57,6 +57,6 @@ Nigel wants as little human involvement as possible. Inside the active phase Cla
 
 ## Current state
 
-**No phase has started.** The docs are written; nothing is built. Do not build until Nigel says "start Phase N". Check the status table in `docs/PHASES.md` — Claude keeps it current.
+**Phase 0 is done (2026-09-16); Phase 1 has not started.** Do not start a phase until Nigel says "start Phase N". Check the status table in `docs/PHASES.md` — Claude keeps it current.
 
-Human gates cleared on 2026-09-16: repo is **public** (H1), Vercel project **`goal-tracker-bus321`** exists at `https://goal-tracker-bus321.vercel.app` and the folder is linked (H2), Neon Postgres is connected to Preview + Production (H3). Local dev/E2E use Postgres in Docker, never Neon (`docs/adr/0003-public-repo-and-local-database.md`).
+Human gates cleared on 2026-09-16: repo is **public** (H1), Vercel project **`goal-tracker-bus321`** exists at `https://goal-tracker-bus321.vercel.app` and the folder is linked (H2), Neon Postgres is connected to Preview + Production with preview branching on (H3, H9). Google OAuth client and its secrets are in Vercel Production (H4, H5); `https://bus321.nigel-smith.dev` is live (H6); `main` is protected with all eight checks required (H9). Local dev/E2E use Postgres in Docker, never Neon (`docs/adr/0003-public-repo-and-local-database.md`).

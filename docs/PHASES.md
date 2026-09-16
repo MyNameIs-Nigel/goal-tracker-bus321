@@ -8,8 +8,8 @@ The plan for taking this from a blank `create-next-app` to a live tracker at `ht
 
 | Phase | Name | Status | Target |
 |-------|------|--------|--------|
-| 0 | Foundation — tooling, CI/CD, Vercel | 🔄 built and deployed 2026-09-16 — ⏸ blocked on [H9](HUMAN_TASKS.md#h9-turn-on-branch-protection-and-set-the-preview-env-vars) for the last criterion | Wed 9/16 |
-| 1 | Auth & roles | ☐ not started — H3 ✅; needs H4, H5 | Wed 9/16 – Thu 9/17 |
+| 0 | Foundation — tooling, CI/CD, Vercel | ✅ done 2026-09-16 (H9 ✅, Neon branching on) | Wed 9/16 |
+| 1 | Auth & roles | ☐ not started — H3 ✅ H4 ✅ H5 ✅; nothing human-blocked | Wed 9/16 – Thu 9/17 |
 | 2 | Goals & daily tracking | ☐ not started | Thu 9/17 – Fri 9/18 |
 | 3 | Partners, contract & vision, history | ☐ not started | Fri 9/18 – Sat 9/19 |
 | 4 | Launch | ☐ not started | Sat 9/19 |
@@ -52,18 +52,18 @@ If 9/19 is at risk, this is what must be live for the contract to start, in prio
 - `docker-compose.yml` with a `postgres:17` service for local dev and local E2E (same image as CI); `.env.example` documents `DATABASE_URL` pointing at it.
 - `.github/workflows/ci.yml` (lint, typecheck, unit, e2e, build), `flow-check.yml`, `pr-title.yml`; `.github/dependabot.yml`; `.github/PULL_REQUEST_TEMPLATE.md`; `scripts/flow-check.mjs`.
 - Repo settings via `gh`: squash-merge only, delete branch on merge, auto-merge allowed; labels `skip-flow-check`, `dependencies`; branch protection with required checks (if H1 allows).
-- Vercel: project already created and linked ✅; add `vercel.json` (framework, build command with migrations); Preview env `E2E_AUTH=1`; Production `BETTER_AUTH_URL` (= `https://goal-tracker-bus321.vercel.app` until H6), `BETTER_AUTH_SECRET` generated in place for Production and Preview.
+- Vercel: project already created and linked ✅; add `vercel.json` (framework, build command with migrations); Preview env `E2E_AUTH=1`; Production `BETTER_AUTH_URL` (= `https://bus321.nigel-smith.dev` since H6), `BETTER_AUTH_SECRET` generated in place for Production and Preview.
 - Replace the placeholder home page with a minimal "BUS 321 Goal Tracker" page (no auth yet) so the smoke test has something real.
 
 **Exit criteria:**
 - [x] A PR with a one-line change shows all checks green: `lint`, `typecheck`, `unit`, `e2e`, `build`, `flow-check`, `pr-title`, plus the Vercel preview check. — [#1](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/1), all nine green on the first run.
 - [x] The preview URL renders the placeholder page.
 - [x] Merging deploys to `https://goal-tracker-bus321.vercel.app`.
-- [ ] Confirmed whether Neon created a preview branch for the PR (Neon console → Branches, or the deployment's connected-resource panel); result recorded in `ARCHITECTURE.md § Environments`. — **needs the Neon console**, part of [H9](HUMAN_TASKS.md#h9-turn-on-branch-protection-and-set-the-preview-env-vars). Not urgent: nothing reads the database until Phase 1, and additive-only migrations make either answer safe.
+- [x] Confirmed whether Neon created a preview branch for the PR; result recorded in `ARCHITECTURE.md § Environments`. — Nigel checked the Neon console in [H9](HUMAN_TASKS.md#h9-turn-on-branch-protection-and-set-the-preview-env-vars): **branching is on**, so each preview deployment gets its own database branch.
 - [x] Dependabot opened (or is scheduled to open) its first PR and it is auto-labeled `skip-flow-check`. — it ran on the merge and opened two, grouped exactly as configured: [#2](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/2) `minor-and-patch` and [#3](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/3) `major`, both labelled `skip-flow-check` and `dependencies`.
 - [x] `docs/PHASES.md` status updated.
 
-**Not done from the repo, and why.** Branch protection, the squash-only merge settings and the Vercel environment variables are account-level configuration, not code. They are [H9](HUMAN_TASKS.md#h9-turn-on-branch-protection-and-set-the-preview-env-vars). Until protection is on, "green before merge" is a rule Claude follows rather than one GitHub enforces — which is exactly the fallback H1 option 3 described, just temporary.
+**Account-level configuration** (branch protection, squash-only merge settings, Vercel env vars) was done by Nigel in [H9](HUMAN_TASKS.md#h9-turn-on-branch-protection-and-set-the-preview-env-vars) on 2026-09-16 and verified by Claude; `main` now requires all eight checks (`lint`, `typecheck`, `unit`, `e2e`, `build`, `flow-check`, `pr-title`, `Vercel`) with admins enforced.
 
 ---
 
@@ -71,7 +71,7 @@ If 9/19 is at risk, this is what must be live for the contract to start, in prio
 
 **Goal:** anyone with a Google account can sign in; Nigel is `owner`; everyone else is `viewer` until promoted; Nigel can promote from `/people`.
 
-**Depends on humans:** [H3](HUMAN_TASKS.md#h3-create-the-neon-database-through-vercel) ✅ (done 2026-09-16), [H4](HUMAN_TASKS.md#h4-create-the-google-oauth-client) (Google client), [H5](HUMAN_TASKS.md#h5-put-the-google-secrets-and-your-owner-email-into-vercel) (secrets). CI, local and previews don't need H4/H5 — only the production sign-in check at the end does.
+**Depends on humans:** [H3](HUMAN_TASKS.md#h3-create-the-neon-database-through-vercel) ✅ (done 2026-09-16), [H4](HUMAN_TASKS.md#h4-create-the-google-oauth-client) ✅, [H5](HUMAN_TASKS.md#h5-put-the-google-secrets-and-your-owner-email-into-vercel) ✅ (both 2026-09-16). Nothing human-blocked; [H6](HUMAN_TASKS.md#h6-point-bus321nigel-smithdev-at-vercel) is also done, so the end-of-phase sign-in check runs at `https://bus321.nigel-smith.dev`.
 
 **Specs:** [authentication](specs/authentication.md), [roles-and-permissions](specs/roles-and-permissions.md), [people](specs/people.md).
 
@@ -122,7 +122,7 @@ If 9/19 is at risk, this is what must be live for the contract to start, in prio
 
 **Goal:** live on the real domain, on real phones, with real content, before Saturday.
 
-**Depends on humans:** [H6](HUMAN_TASKS.md#h6-point-bus321nigel-smithdev-at-vercel) (DNS), [H7](HUMAN_TASKS.md#h7-write-your-content-in-the-app) (content), [H8](HUMAN_TASKS.md#h8-share-the-link-with-your-partners) (share).
+**Depends on humans:** [H6](HUMAN_TASKS.md#h6-point-bus321nigel-smithdev-at-vercel) ✅ (DNS, done 2026-09-16), [H7](HUMAN_TASKS.md#h7-write-your-content-in-the-app) (content), [H8](HUMAN_TASKS.md#h8-share-the-link-with-your-partners) (share).
 
 **Code:** empty/loading/error states audit; accessibility pass (labels, focus order, contrast, hit targets ≥ 44px); page metadata and favicon; `BETTER_AUTH_URL` switched to the custom domain; production smoke run of every spec's happy path with the built-in browser at phone and desktop widths.
 
