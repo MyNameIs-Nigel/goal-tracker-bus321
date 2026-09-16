@@ -22,6 +22,17 @@ test("today() honours a fixed clock in test mode, converted to America/Denver", 
   expect(today()).toBe("2026-09-19");
 });
 
+test("DT-13 the day boundary is America/Denver", () => {
+  vi.stubEnv("E2E_AUTH", "1");
+  vi.stubEnv("VERCEL_ENV", "preview");
+
+  setFixedNow("2026-09-23T05:59:00Z"); // 23:59 on 9/22 in Denver
+  expect(today()).toBe("2026-09-22");
+
+  setFixedNow("2026-09-23T06:00:00Z"); // 00:00 on 9/23 in Denver
+  expect(today()).toBe("2026-09-23");
+});
+
 test("a fixed clock is ignored outside test mode", () => {
   vi.stubEnv("E2E_AUTH", undefined);
   setFixedNow("2026-09-19T12:00:00Z");

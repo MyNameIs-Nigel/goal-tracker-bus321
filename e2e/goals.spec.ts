@@ -1,35 +1,10 @@
-import type { Page } from "@playwright/test";
-
 import { expect, test } from "./fixtures";
+import { addGoal } from "./helpers";
 
 // Cadence-lock (GOAL-05) and delete-when-completed (GOAL-09) both require an
 // existing completion, which needs the daily-tracking UI (Phase 2's other
 // spec, same PR-cycle but landing separately) — those two branches are unit
 // tests: lib/actions/goals.test.ts.
-
-async function addGoal(
-  page: Page,
-  {
-    title,
-    description = "",
-    cadence = "Daily",
-    startsOn,
-  }: {
-    title: string;
-    description?: string;
-    cadence?: "Daily" | "Weekly" | "Monthly";
-    startsOn?: string;
-  },
-) {
-  await page.getByRole("button", { name: "Add goal" }).click();
-  await page.getByLabel("Title").fill(title);
-  if (description) await page.getByLabel("Description").fill(description);
-  // The radio input is visually hidden (its label carries the pill style);
-  // click the label text rather than the input itself.
-  await page.locator("form").getByText(cadence, { exact: true }).click();
-  if (startsOn) await page.getByLabel("Start date").fill(startsOn);
-  await page.getByRole("button", { name: "Save" }).click();
-}
 
 test("GOAL-01 goals are listed by cadence, with a collapsed archived section", async ({
   page,
