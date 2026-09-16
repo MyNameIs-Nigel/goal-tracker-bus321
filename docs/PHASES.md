@@ -8,7 +8,7 @@ The plan for taking this from a blank `create-next-app` to a live tracker at `ht
 
 | Phase | Name | Status | Target |
 |-------|------|--------|--------|
-| 0 | Foundation — tooling, CI/CD, Vercel | 🔄 built and deployed 2026-09-16 — ⏸ blocked on [H9](HUMAN_TASKS.md#h9-turn-on-branch-protection-and-set-the-preview-env-vars) for the last two criteria | Wed 9/16 |
+| 0 | Foundation — tooling, CI/CD, Vercel | 🔄 built and deployed 2026-09-16 — ⏸ blocked on [H9](HUMAN_TASKS.md#h9-turn-on-branch-protection-and-set-the-preview-env-vars) for the last criterion | Wed 9/16 |
 | 1 | Auth & roles | ☐ not started — H3 ✅; needs H4, H5 | Wed 9/16 – Thu 9/17 |
 | 2 | Goals & daily tracking | ☐ not started | Thu 9/17 – Fri 9/18 |
 | 3 | Partners, contract & vision, history | ☐ not started | Fri 9/18 – Sat 9/19 |
@@ -60,7 +60,7 @@ If 9/19 is at risk, this is what must be live for the contract to start, in prio
 - [x] The preview URL renders the placeholder page.
 - [x] Merging deploys to `https://goal-tracker-bus321.vercel.app`.
 - [ ] Confirmed whether Neon created a preview branch for the PR (Neon console → Branches, or the deployment's connected-resource panel); result recorded in `ARCHITECTURE.md § Environments`. — **needs the Neon console**, part of [H9](HUMAN_TASKS.md#h9-turn-on-branch-protection-and-set-the-preview-env-vars). Not urgent: nothing reads the database until Phase 1, and additive-only migrations make either answer safe.
-- [ ] Dependabot opened (or is scheduled to open) its first PR and it is auto-labeled `skip-flow-check`. — config is merged; the first run is Monday 06:00 America/Denver. The `dependencies` and `skip-flow-check` labels exist.
+- [x] Dependabot opened (or is scheduled to open) its first PR and it is auto-labeled `skip-flow-check`. — it ran on the merge and opened two, grouped exactly as configured: [#2](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/2) `minor-and-patch` and [#3](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/3) `major`, both labelled `skip-flow-check` and `dependencies`.
 - [x] `docs/PHASES.md` status updated.
 
 **Not done from the repo, and why.** Branch protection, the squash-only merge settings and the Vercel environment variables are account-level configuration, not code. They are [H9](HUMAN_TASKS.md#h9-turn-on-branch-protection-and-set-the-preview-env-vars). Until protection is on, "green before merge" is a rule Claude follows rather than one GitHub enforces — which is exactly the fallback H1 option 3 described, just temporary.
