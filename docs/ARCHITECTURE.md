@@ -9,7 +9,7 @@ A single Next.js 16 app on Vercel, one Postgres database, Google sign-in, three 
 | Framework | Next.js 16.3 App Router, React 19, TypeScript strict | scaffolded; Server Components + Server Actions cover everything here |
 | Styling | Tailwind v4, native HTML elements, no component library | small app; simplicity is the design |
 | Auth | Better Auth — Google provider, Drizzle adapter, `role` field on user | first-class App Router support, roles built in |
-| Database | Neon Postgres (Vercel Marketplace, free tier) via Drizzle ORM + Drizzle Kit migrations | free, type-safe, DB branches for previews |
+| Database | Neon Postgres (Vercel Marketplace, free tier) via Drizzle ORM + Drizzle Kit migrations, `node-postgres` (`pg`) driver | free, type-safe, DB branches for previews; `pg` speaks plain Postgres wire protocol so the same client code runs unchanged against Neon (its pooled TCP endpoint) and the local Docker container — no Neon-specific driver needed for local dev/CI (ADR-0003) |
 | Rich text | Tiptap editor; HTML stored, sanitized server-side | the vision and contract are the owner's content, edited in-app |
 | Tests | Vitest + React Testing Library; Playwright | per the Next.js 16 testing guide |
 | CI/CD | GitHub Actions for checks; Vercel Git integration for deploys | no deploy tokens, previews per PR |
@@ -43,7 +43,7 @@ lib/
   actions/                   Server Actions (one file per feature), each calls a require* first
 db/
   schema.ts                  Drizzle schema (source of truth for tables)
-  client.ts                  Drizzle client (Neon serverless driver)
+  client.ts                  Drizzle client (`node-postgres` driver, works against Neon and Docker Postgres alike)
   migrations/                generated SQL, committed
   seed.e2e.ts                test users + fixtures for E2E
 proxy.ts                     optimistic redirects only (Next 16's renamed middleware)
@@ -53,7 +53,7 @@ e2e/                         Playwright specs, one file per spec doc
 scripts/
   flow-check.mjs             the docs→tests→code CI rule (pure function, unit-tested)
   trace.mjs                  scenario ID ↔ test coverage report (`npm run trace`)
-  db-migrate.mjs             `npm run db:migrate`; no-op until Phase 1 adds Drizzle
+  db-migrate.mjs             `npm run db:migrate` — runs Drizzle Kit's migrator against `DATABASE_URL`
 .github/                     workflows (ci, flow-check, pr-title), dependabot, PR template
 docs/                        this
 ```
@@ -84,7 +84,7 @@ requirePartner()   → session with role ∈ {partner, owner} or throw Forbidden
 requireOwner()     → session with role = owner or notFound()
 ```
 
-Every read of another user's data goes through these; every Server Action starts with one. Permission matrix: [specs/roles-and-permissions.md](specs/roles-and-permissions.md).
+Every read of another user's data goes through these; every Server Action starts with one. `requireOwner()`'s `notFound()` is for **pages** (`/people`, ROLE-02); an owner-only **Server Action** calls `requireUser()` and throws `Forbidden` itself on the wrong role (ROLE-03) — a rejected mutation is a 403, not a 404. Permission matrix: [specs/roles-and-permissions.md](specs/roles-and-permissions.md).
 
 ## Time
 

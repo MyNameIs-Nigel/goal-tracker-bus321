@@ -13,11 +13,9 @@ All live in `.github/workflows/`. Every job runs on `ubuntu-latest`, Node from `
 | `lint` | `npm run lint` · `npm run format:check` | ESLint (Next config) + Prettier. Prettier owns code and config; `*.md` is in `.prettierignore` — the docs are prose and the source of truth, and reflowed tables would bury a one-word edit in a twenty-line diff |
 | `typecheck` | `npm run typecheck` (`next typegen && tsc --noEmit`) | `next typegen` writes the route-aware globals (`LayoutProps`, `PageProps`, `RouteContext`) into `.next/types`; without it `tsc` fails on a file that has never been built |
 | `unit` | `npm test` (`vitest run`) | uploads coverage as an artifact; no threshold gate in v1 |
-| `e2e` | migrate + seed → `npm run build` → `npx playwright test` | Postgres 17 **service container**; env: `DATABASE_URL` (container), `E2E_AUTH=1`, `E2E_FIXED_NOW` unset, `BETTER_AUTH_SECRET=ci-only-not-secret`, `BETTER_AUTH_URL=http://localhost:3000`, `OWNER_EMAIL=owner@e2e.local`. Installs `chromium` with `--with-deps`. Uploads the Playwright report on failure. |
+| `e2e` | migrate → `npm run build` → `npx playwright test` | Postgres 17 **service container**; env: `DATABASE_URL` (container), `E2E_AUTH=1`, `E2E_FIXED_NOW` unset, `BETTER_AUTH_SECRET=ci-only-not-secret`, `BETTER_AUTH_URL=http://localhost:3000`, `OWNER_EMAIL=owner@e2e.local`. `npm run db:migrate` runs Drizzle Kit's migrator against the container; there's no separate seed step — each test seeds itself via `POST /api/e2e/reset` (`e2e/fixtures.ts`'s `page` fixture, docs/TESTING.md § E2E setup). Installs `chromium` with `--with-deps`. Uploads the Playwright report on failure. |
 | `build` | `npm run build` | caches `~/.npm` and `.next/cache` with the key from the Next.js CI caching guide (`hashFiles(package-lock.json)` + source hash, restore-key on lockfile alone) |
 | `audit` | `npm audit --audit-level=high` | `continue-on-error: true` — informational |
-
-> **Phase 0 note.** There is no database layer yet. The `e2e` job already starts the Postgres 17 service container and exports the env above — proving that plumbing works — and runs `npm run db:migrate`, which is a no-op placeholder (`scripts/db-migrate.mjs`) until Phase 1. There is no seed step and no reset endpoint yet, so Phase 0's only E2E is the smoke test. Phase 1 points `db:migrate` at `drizzle-kit migrate` and adds `db/seed.e2e.ts` to the job; nothing else about the workflow changes.
 
 `e2e` also proves the production build, but `build` stays a separate, fast, required check so a broken build is diagnosed without reading Playwright output.
 
@@ -72,8 +70,8 @@ Dependabot PRs still need every `ci.yml` job green. With branch protection + aut
   ```
   Node version comes from `engines.node` in `package.json`. No `installCommand` override; Vercel runs `npm ci` from the lockfile.
 
-  The `db:migrate` script is the no-op placeholder described above until Phase 1, so the build command is correct from Phase 0 onward and never needs editing again.
-- **Migrations run inside the build**, before `next build`, against whichever `DATABASE_URL` the environment has (production DB, or the Neon preview branch). They are additive-only in v1 ([DATA_MODEL.md § Migrations](DATA_MODEL.md#migrations)), so a preview that shares the production DB can't break it. A failed migration fails the build, and the previous deployment stays live.
+  This build command was correct from Phase 0 onward and has never needed editing: `db:migrate` was a no-op placeholder until Phase 1 pointed it at Drizzle's migrator (`scripts/db-migrate.mjs`, `drizzle-orm/node-postgres/migrator`).
+- **Migrations run inside the build**, before `next build`, against whichever `DATABASE_URL` the environment has (production DB, or the Neon preview branch). They are additive-only in v1 ([DATA_MODEL.md § Migrations](DATA_MODEL.md#migrations)), so a preview that shares the production DB can't break it. A failed migration fails the build, and the previous deployment stays live. New migrations are generated with `npm run db:generate` after editing `db/schema.ts`, then committed.
 - **Rollback**: Vercel → Deployments → promote the previous one. Or `git revert` on `main`.
 
 ## Caching

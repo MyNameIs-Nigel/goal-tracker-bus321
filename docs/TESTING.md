@@ -2,7 +2,7 @@
 
 Tests are the executable form of the specs. Every scenario ID in `docs/specs/*.md` has at least one test whose name starts with that ID. Tests are written before the code and must fail first.
 
-> **Phase 0 note.** The only tests that exist yet are the foundation's own: `scripts/flow-check.test.ts` (the CI rule, a pure function), `app/page.test.tsx` (the home page renders), and `e2e/smoke.spec.ts` (`/` renders the app name in both Playwright projects). None of them touch a database, so `e2e/fixtures.ts`, the reset endpoint, the seed and `signInAs` described below arrive with Phase 1. Foundation tests have no scenario ID — there is no spec behind them — so `npm run trace` ignores them.
+> **Phase 0 note.** The foundation's own tests (`scripts/flow-check.test.ts`, `e2e/smoke.spec.ts`) have no scenario ID — there is no spec behind them — so `npm run trace` ignores them. `e2e/fixtures.ts`, the reset endpoint, the seed and `signInAs` described below shipped with Phase 1.
 
 ## Layers and where a scenario lives
 
@@ -35,7 +35,7 @@ The ID is the first token of the test name. `npm run trace` lists every scenario
 
 ## E2E setup (Playwright)
 
-- `playwright.config.ts`: `testDir: "e2e"`, `baseURL: "http://localhost:3000"`, `webServer: { command: "npm run start", reuseExistingServer: !process.env.CI }` after `npm run build`; two projects — `chromium` (desktop) and `mobile` (`devices["Pixel 7"]`). Retries: 2 in CI, 0 locally. Trace on first retry; screenshot on failure.
+- `playwright.config.ts`: `testDir: "e2e"`, `baseURL: "http://localhost:3000"`, `webServer: { command: "npm run start", reuseExistingServer: !process.env.CI }` after `npm run build`; two projects — `chromium` (desktop) and `mobile` (`devices["Pixel 7"]`). Retries: 2 in CI, 0 locally. Trace on first retry; screenshot on failure. `workers: 1` / `fullyParallel: false` — every test resets the one shared database, so tests run serially against the single running server rather than racing each other's resets.
 - **Database:** a real Postgres. CI uses a `postgres:17` service container; locally, the same image via `docker compose up -d` (`DATABASE_URL` in `.env.local` points at it). Never Neon: the reset endpoint truncates tables, and the only Neon database is production's ([ADR-0003](adr/0003-public-repo-and-local-database.md)).
 - **Reset:** `POST /api/e2e/reset` truncates every app table (`goals`, `completions`, `exceptions`, `partner_checkins`, `documents`, `settings`, and the Better Auth tables), then reseeds. A `beforeEach` fixture in `e2e/fixtures.ts` calls it, so every test starts from the same state. It is a 404 outside test mode.
 - **Seed** (`db/seed.e2e.ts`): three users — `owner@e2e.local` (role owner, name "Test Owner"), `partner@e2e.local` (partner, "Test Partner"), `viewer@e2e.local` (viewer, "Test Viewer"); `settings` with `contract_start = 2026-09-19`; empty documents.
