@@ -98,7 +98,7 @@ Every read of another user's data goes through these; every Server Action starts
 | | Production | Preview (each PR) | CI (GitHub Actions) | Local dev |
 |---|---|---|---|---|
 | URL | `bus321.nigel-smith.dev` (+ `goal-tracker-bus321.vercel.app` redirecting to it) | `goal-tracker-bus321-git-<branch>-….vercel.app` | `localhost:3000` | `localhost:3000` |
-| Database | Neon main branch | Neon preview branch (branching status: **still unverified** — reading it needs the Neon console, which is [H9](HUMAN_TASKS.md#h9-turn-on-branch-protection-and-set-the-preview-env-vars); if off, previews share main — additive migrations only) | Postgres service container | **Postgres in Docker** (`docker compose up -d`) — never Neon |
+| Database | Neon main branch | Neon preview branch (**branching on**, verified 2026-09-16 in H9 — each preview deployment gets a branch of main; migrations stay additive-only regardless) | Postgres service container | **Postgres in Docker** (`docker compose up -d`) — never Neon |
 | Sign-in | Google | **test sign-in** (`E2E_AUTH=1`) | test sign-in | test sign-in (Google optional) |
 | Migrations | in the Vercel build command | in the Vercel build command | before the E2E job | `npm run db:migrate` |
 
@@ -117,7 +117,7 @@ matching `.nvmrc` and `engines.node`.
 | `DATABASE_URL` | prod, preview | yes | Neon integration (H3 ✅ — also injected `DATABASE_URL_UNPOOLED`, `POSTGRES_*`, `PG*`, `NEON_PROJECT_ID`; the Neon Auth variables `NEON_AUTH_BASE_URL` / `VITE_NEON_AUTH_URL` are unused) |
 | `DATABASE_URL` | CI, local | no | CI workflow (service container) / `.env.local` pointing at the Docker container |
 | `BETTER_AUTH_SECRET` | prod, preview | yes | Claude, generated in place (`openssl rand -base64 32`), never displayed |
-| `BETTER_AUTH_URL` | prod | no | Claude — `https://bus321.nigel-smith.dev` (the `*.vercel.app` URL until H6) |
+| `BETTER_AUTH_URL` | prod | no | Claude — `https://bus321.nigel-smith.dev` (set 2026-09-16 after H6) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | prod (dev optional) | yes | Nigel (H5) |
 | `OWNER_EMAIL` | prod (dev optional) | no, but personal | Nigel (H5) |
 | `E2E_AUTH` | preview, CI, local | no | Claude — `1` |
