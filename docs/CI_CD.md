@@ -10,8 +10,8 @@ All live in `.github/workflows/`. Every job runs on `ubuntu-latest`, Node from `
 
 | Job (= check name) | Runs | Notes |
 |---|---|---|
-| `lint` | `npm run lint` · `npm run format:check` | ESLint (Next config) + Prettier |
-| `typecheck` | `npm run typecheck` (`tsc --noEmit`) | |
+| `lint` | `npm run lint` · `npm run format:check` | ESLint (Next config) + Prettier. Prettier owns code and config; `*.md` is in `.prettierignore` — the docs are prose and the source of truth, and reflowed tables would bury a one-word edit in a twenty-line diff |
+| `typecheck` | `npm run typecheck` (`next typegen && tsc --noEmit`) | `next typegen` writes the route-aware globals (`LayoutProps`, `PageProps`, `RouteContext`) into `.next/types`; without it `tsc` fails on a file that has never been built |
 | `unit` | `npm test` (`vitest run`) | uploads coverage as an artifact; no threshold gate in v1 |
 | `e2e` | migrate + seed → `npm run build` → `npx playwright test` | Postgres 17 **service container**; env: `DATABASE_URL` (container), `E2E_AUTH=1`, `E2E_FIXED_NOW` unset, `BETTER_AUTH_SECRET=ci-only-not-secret`, `BETTER_AUTH_URL=http://localhost:3000`, `OWNER_EMAIL=owner@e2e.local`. Installs `chromium` with `--with-deps`. Uploads the Playwright report on failure. |
 | `build` | `npm run build` | caches `~/.npm` and `.next/cache` with the key from the Next.js CI caching guide (`hashFiles(package-lock.json)` + source hash, restore-key on lockfile alone) |

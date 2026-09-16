@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+build
+coverage
+playwright-report
+test-results
+blob-report
+.vercel
+package-lock.json
+public
+app/favicon.ico
+
+# Markdown is prose, and docs/ is the source of truth. Prettier's table
+# padding turns a one-word edit into a twenty-line diff, so formatting is
+# left to the author (docs/CI_CD.md § Workflows).
+*.md
