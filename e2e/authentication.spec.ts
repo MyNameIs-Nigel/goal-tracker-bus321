@@ -98,8 +98,10 @@ test("AUTH-11 reset's `now` pins lib/clock.ts until the next reset", async ({
 
   await signInAs("owner");
   await page.goto("/today");
-  // 04:30 UTC is still 2026-09-19 evening in America/Denver.
-  await expect(page.getByText("2026-09-19")).toBeVisible();
+  // 04:30 UTC is still 2026-09-19 evening in America/Denver (a Saturday).
+  await expect(
+    page.getByRole("heading", { name: "Saturday, September 19" }),
+  ).toBeVisible();
 });
 
 test("AUTH-12 the header shows who you are", async ({ page, signInAs }) => {

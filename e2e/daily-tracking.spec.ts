@@ -53,13 +53,15 @@ test("DT-03 owner checks off a daily goal and it survives a reload", async ({
 
   await page.goto("/today");
   await page.getByRole("button", { name: /Read 20 pages/ }).click();
-  await expect(page.getByText("Done")).toBeVisible();
+  // exact: true — the progress heading ("Today · All done") also contains
+  // the word "done" and would otherwise match too.
+  await expect(page.getByText("Done", { exact: true })).toBeVisible();
 
   await page.reload();
-  await expect(page.getByText("Done")).toBeVisible();
+  await expect(page.getByText("Done", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: /Read 20 pages/ }).click();
-  await expect(page.getByText("Pending")).toBeVisible();
+  await expect(page.getByText("Pending", { exact: true })).toBeVisible();
 });
 
 test("DT-05 owner edits a past day", async ({ page, signInAs }) => {
@@ -75,7 +77,7 @@ test("DT-05 owner edits a past day", async ({ page, signInAs }) => {
   await expect(page.getByText("Editing a past day")).toBeVisible();
 
   await page.getByRole("button", { name: /D1/ }).click();
-  await expect(page.getByText("Done")).toBeVisible();
+  await expect(page.getByText("Done", { exact: true })).toBeVisible();
 });
 
 test("DT-06 future days are read-only for completions", async ({
