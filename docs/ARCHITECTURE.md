@@ -50,7 +50,11 @@ proxy.ts                     optimistic redirects only (Next 16's renamed middle
 docker-compose.yml           local Postgres for dev and E2E (same image as CI)
 vercel.json                  framework + build command (migrate, then build)
 e2e/                         Playwright specs, one file per spec doc
-scripts/flow-check.mjs       the docs→tests→code CI rule (unit-tested)
+scripts/
+  flow-check.mjs             the docs→tests→code CI rule (pure function, unit-tested)
+  trace.mjs                  scenario ID ↔ test coverage report (`npm run trace`)
+  db-migrate.mjs             `npm run db:migrate`; no-op until Phase 1 adds Drizzle
+.github/                     workflows (ci, flow-check, pr-title), dependabot, PR template
 docs/                        this
 ```
 

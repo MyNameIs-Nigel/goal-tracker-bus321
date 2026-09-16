@@ -2,6 +2,8 @@
 
 Tests are the executable form of the specs. Every scenario ID in `docs/specs/*.md` has at least one test whose name starts with that ID. Tests are written before the code and must fail first.
 
+> **Phase 0 note.** The only tests that exist yet are the foundation's own: `scripts/flow-check.test.ts` (the CI rule, a pure function), `app/page.test.tsx` (the home page renders), and `e2e/smoke.spec.ts` (`/` renders the app name in both Playwright projects). None of them touch a database, so `e2e/fixtures.ts`, the reset endpoint, the seed and `signInAs` described below arrive with Phase 1. Foundation tests have no scenario ID — there is no spec behind them — so `npm run trace` ignores them.
+
 ## Layers and where a scenario lives
 
 | Layer | Tool | What goes here | Location |
@@ -23,7 +25,7 @@ Rules of thumb:
 test("GOAL-03 rejects an empty title with an inline error", async () => { … })
 ```
 
-The ID is the first token of the test name. `npm run trace` (Phase 0 script) lists every scenario ID in `docs/specs/` and flags any without a test — run before opening a PR.
+The ID is the first token of the test name. `npm run trace` lists every scenario ID in `docs/specs/` (each `### PREFIX-NN` heading) and flags any that no test file names — run before opening a PR. It is a helper, not a gate: it always reports and exits 0 unless `--strict` is passed, which makes any uncovered scenario an error. It is not a CI job — the specs for unstarted phases are legitimately uncovered.
 
 ## Unit and component setup (Vitest)
 
