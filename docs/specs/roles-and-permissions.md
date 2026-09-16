@@ -24,6 +24,10 @@ Three roles, enforced on the server, reflected in the UI. Partners are not just 
 | Read `/people`; change roles (viewer ⇄ partner) | | | ✓ |
 | Change own role / assign owner | | | ✗ (nobody) |
 
+## Phased test coverage
+
+The permission *pattern* (owner-only Server Actions reject viewer/partner; owner-only pages 404) ships in Phase 1 and is exercised end-to-end against the one owner-only action that exists then: `setRole` on `/people`. ROLE-04 needs the partner check-in action (Phase 3); the goal/completion/exception/document parts of ROLE-03 and ROLE-05 need those actions (Phase 2/3). Each gets its own test the phase that builds it — this spec's scenario IDs don't move.
+
 ## Scenarios
 
 ### ROLE-01 Viewers can read everything

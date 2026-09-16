@@ -197,4 +197,4 @@ A partner **checked** on date *d* iff a `partner_checkins` row exists for `(user
 - Drizzle Kit generates SQL migrations into `db/migrations/`; they are committed and reviewed like code.
 - Applied by `npm run db:migrate` — in the Vercel build command (production and previews) and before the E2E job in CI.
 - **Additive only** in v1 (new tables, nullable columns, indexes). Preview deployments may share the production database if Neon preview branching is off; additive migrations keep that safe. Anything destructive is a Phase-5+ conversation with a backup first.
-- Migration 0001 creates every table above, including the `documents` and `settings` seed rows, so Phases 2–3 add data, not structure.
+- The first migration (`db/migrations/0000_init.sql` — Drizzle Kit numbers from 0000) creates every table above, including the `documents` and `settings` seed rows, so Phases 2–3 add data, not structure.

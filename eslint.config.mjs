@@ -13,6 +13,13 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    // Playwright fixture factories take a `use` callback (docs/TESTING.md §
+    // E2E setup) — not a React file, so the Rules of Hooks lint is a
+    // false positive here.
+    files: ["e2e/**"],
+    rules: { "react-hooks/rules-of-hooks": "off" },
+  },
 ]);
 
 export default eslintConfig;
