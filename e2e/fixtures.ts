@@ -14,6 +14,11 @@ type Fixtures = {
 
 export const test = base.extend<Fixtures>({
   page: async ({ page }, use) => {
+    // Archive/delete/remove-exception confirm with a native `confirm()`
+    // dialog (docs/specs/goals.md § UI); Playwright auto-dismisses dialogs
+    // unless told otherwise, which would silently no-op every such action.
+    page.on("dialog", (dialog) => dialog.accept());
+
     const response = await page.request.post("/api/e2e/reset");
     if (!response.ok()) {
       throw new Error(`e2e reset failed: ${response.status()}`);

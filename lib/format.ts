@@ -11,6 +11,11 @@ export function initials(name: string): string {
   );
 }
 
+/** The first word of a display name, for "<Owner first name> hasn't …" copy. */
+export function firstName(name: string): string {
+  return name.trim().split(/\s+/)[0] ?? name;
+}
+
 /** "Joined <Mon D>" (docs/specs/people.md PPL-01). */
 export function formatJoined(date: Date | string): string {
   const value = typeof date === "string" ? new Date(date) : date;
