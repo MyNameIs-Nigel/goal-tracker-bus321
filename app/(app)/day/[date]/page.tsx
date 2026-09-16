@@ -1,10 +1,17 @@
+import { notFound } from "next/navigation";
+
+import DayView from "@/components/DayView";
+import { loadDayPage } from "@/lib/day-page";
+import { requireUser } from "@/lib/dal";
+import { isValidCalendarDate } from "@/lib/validate-date";
+
+/** DT-08 — anything but a real calendar date is a 404. */
 export default async function DayPage({ params }: PageProps<"/day/[date]">) {
   const { date } = await params;
+  if (!isValidCalendarDate(date)) notFound();
 
-  return (
-    <div className="flex flex-col gap-2">
-      <h1 className="text-2xl font-semibold tracking-tight">{date}</h1>
-      <p className="text-muted">Day editing arrives in Phase 2.</p>
-    </div>
-  );
+  const user = await requireUser();
+  const data = await loadDayPage(date, user.role);
+
+  return <DayView {...data} />;
 }
