@@ -59,7 +59,8 @@ test("EXC-03 a goal-specific exception excuses only that goal", async ({
   await page.goto("/day/2026-09-25");
   await page.getByRole("button", { name: "Mark an exception" }).click();
   await page.getByLabel("One goal").check();
-  await page.getByLabel("Goal").selectOption({ label: "D1" });
+  // Not exact: matches "One goal" too (it contains "goal").
+  await page.getByLabel("Goal", { exact: true }).selectOption({ label: "D1" });
   await page.getByLabel("From").fill("2026-09-25");
   await page.getByLabel("To").fill("2026-09-28");
   await page.getByLabel("Reason").fill("Camping, no books");
@@ -83,16 +84,18 @@ test("EXC-05 validation rejects a bad range and an empty reason", async ({
   await signInAs("owner");
   await page.goto("/today");
 
+  // Next.js's own route announcer is also `role="alert"`
+  // (`#__next-route-announcer__`); scope past it by text.
+  const formError = page.getByRole("alert").filter({ hasText: /./ });
+
   await page.getByRole("button", { name: "Mark an exception" }).click();
   await page.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByRole("alert")).toHaveText("A reason is required");
+  await expect(formError).toHaveText("A reason is required");
 
   await page.getByLabel("Reason").fill("Flu");
   await page.getByLabel("To").fill("2026-09-22");
   await page.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByRole("alert")).toHaveText(
-    "End date can't be before start date",
-  );
+  await expect(formError).toHaveText("End date can't be before start date");
 });
 
 test("EXC-06 owner removes an exception and the goal's status recomputes", async ({

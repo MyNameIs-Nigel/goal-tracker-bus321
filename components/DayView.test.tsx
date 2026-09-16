@@ -283,3 +283,26 @@ test("EXC-06 removing an exception restores the goal's status", async () => {
   await vi.waitFor(() => expect(removeException).toHaveBeenCalledWith("exc-1"));
   expect(await screen.findByText("Pending")).toBeInTheDocument();
 });
+
+test("EXC-06 the owner can remove an exception on a future (read-only) day too", () => {
+  render(
+    <DayView
+      {...baseProps({
+        date: "2026-09-25",
+        todayDate: "2026-09-23",
+        exceptions: [
+          {
+            id: "exc-1",
+            goalId: null,
+            startsOn: "2026-09-25",
+            endsOn: "2026-09-25",
+            reason: "Flu",
+          },
+        ],
+      })}
+    />,
+  );
+  expect(
+    screen.getByRole("button", { name: "Remove exception" }),
+  ).toBeInTheDocument();
+});

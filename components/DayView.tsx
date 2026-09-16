@@ -48,6 +48,7 @@ function statusText(goal: GoalStatusView): string {
 function GoalRow({
   goal,
   canEdit,
+  isOwner,
   date,
   dueLabel,
   onToggled,
@@ -55,6 +56,7 @@ function GoalRow({
 }: {
   goal: GoalStatusView;
   canEdit: boolean;
+  isOwner: boolean;
   date: string;
   dueLabel?: string;
   onToggled: (id: string, completed: boolean) => void;
@@ -124,7 +126,7 @@ function GoalRow({
     "flex min-h-12 w-full items-center gap-3 rounded-xl border border-border p-3 text-left";
 
   const canRemoveException =
-    canEdit && goal.status === "excused" && goal.excusedExceptionId;
+    isOwner && goal.status === "excused" && goal.excusedExceptionId;
 
   return (
     <div className="flex flex-col gap-1">
@@ -306,6 +308,7 @@ export default function DayView(props: DayPageData) {
                 key={goal.id}
                 goal={goal}
                 canEdit={canEdit}
+                isOwner={props.role === "owner"}
                 date={props.date}
                 onToggled={handleToggled}
                 onExceptionRemoved={handleExceptionRemoved}
@@ -326,6 +329,7 @@ export default function DayView(props: DayPageData) {
                 key={goal.id}
                 goal={goal}
                 canEdit={canEdit}
+                isOwner={props.role === "owner"}
                 date={props.date}
                 dueLabel={formatWeekdayShort(goal.periodEnd)}
                 onToggled={handleToggled}
@@ -347,6 +351,7 @@ export default function DayView(props: DayPageData) {
                 key={goal.id}
                 goal={goal}
                 canEdit={canEdit}
+                isOwner={props.role === "owner"}
                 date={props.date}
                 dueLabel={formatWeekdayShort(goal.periodEnd)}
                 onToggled={handleToggled}
