@@ -4,7 +4,13 @@ const baseURL = "http://localhost:3000";
 
 export default defineConfig({
   testDir: "e2e",
-  fullyParallel: true,
+  // Every test resets the *shared* database via POST /api/e2e/reset
+  // (docs/TESTING.md § E2E setup) against a single `npm run start` server,
+  // so two tests running at once would stomp each other's seeded state.
+  // Serial execution trades speed for the "every test starts from the same
+  // state" guarantee that reset is meant to provide.
+  fullyParallel: false,
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [["html", { open: "never" }], ["list"]] : "list",
