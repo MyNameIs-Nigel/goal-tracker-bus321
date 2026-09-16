@@ -1,14 +1,9 @@
 import { expect, test } from "./fixtures";
-import { addGoal } from "./helpers";
+import { addGoal, resetAt } from "./helpers";
 
 // Fixes "today" to Wednesday 2026-09-23 (Denver), 5 days into the seeded
 // 2026-09-19 contract — the exact date DT-01/DT-11/DT-12 use as examples.
 const FIXED_NOW = "2026-09-23T18:00:00Z";
-
-async function resetAt(page: import("@playwright/test").Page, now: string) {
-  const response = await page.request.post("/api/e2e/reset", { data: { now } });
-  if (!response.ok()) throw new Error(`reset failed: ${response.status()}`);
-}
 
 test("DT-01 the header names the day and the contract day", async ({
   page,

@@ -135,7 +135,7 @@ test("statusOf: not-counting when the goal doesn't count in the period", () => {
   expect(status).toBe("not-counting");
 });
 
-test("statusOf: done beats everything else (EXC-07)", () => {
+test("EXC-07 done beats excused", () => {
   const period = periodFor("daily", "2026-09-24");
   const status = statusOf({
     goal: dailyGoal,

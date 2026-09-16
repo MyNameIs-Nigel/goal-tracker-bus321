@@ -85,6 +85,7 @@ test("EXC-08 an excused goal carries the exception's reason", () => {
     completions: [],
     exceptions: [
       {
+        id: "exc-1",
         goalId: null,
         startsOn: "2026-09-24",
         endsOn: "2026-09-24",
@@ -95,6 +96,7 @@ test("EXC-08 an excused goal carries the exception's reason", () => {
   expect(groups.daily[0]).toMatchObject({
     status: "excused",
     excusedReason: "Flu",
+    excusedExceptionId: "exc-1",
   });
 });
 

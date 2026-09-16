@@ -2,9 +2,16 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 
 vi.mock("@/lib/actions/completions", () => ({ toggleCompletion: vi.fn() }));
+vi.mock("@/lib/actions/exceptions", () => ({
+  createException: vi.fn(),
+  removeException: vi.fn(),
+}));
 
 const { default: DayView } = await import("./DayView");
 const { toggleCompletion } = await import("@/lib/actions/completions");
+const { createException, removeException } = await import(
+  "@/lib/actions/exceptions"
+);
 
 const noContract = { contractStart: null, contractEnd: null };
 
@@ -33,6 +40,9 @@ function baseProps(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   vi.mocked(toggleCompletion).mockReset();
+  vi.mocked(createException).mockReset();
+  vi.mocked(removeException).mockReset();
+  vi.spyOn(window, "confirm").mockReturnValue(true);
 });
 
 test("DT-01 the header names the day", () => {
@@ -213,4 +223,64 @@ test("DT-15 the owner sees an empty-state prompt", () => {
 test("DT-15 a non-owner sees the owner's name", () => {
   render(<DayView {...baseProps({ goals: [], role: "viewer" })} />);
   expect(screen.getByText("Nigel hasn't added goals yet.")).toBeInTheDocument();
+});
+
+test("EXC-01 the owner sees a Mark an exception button; non-owners don't", () => {
+  const { unmount } = render(<DayView {...baseProps({ role: "owner" })} />);
+  expect(
+    screen.getByRole("button", { name: "Mark an exception" }),
+  ).toBeInTheDocument();
+  unmount();
+
+  render(<DayView {...baseProps({ role: "viewer" })} />);
+  expect(
+    screen.queryByRole("button", { name: "Mark an exception" }),
+  ).not.toBeInTheDocument();
+});
+
+test("EXC-02 creating an exception excuses the goal immediately", async () => {
+  vi.mocked(createException).mockResolvedValue({
+    ok: true,
+    exception: {
+      id: "exc-1",
+      goalId: null,
+      startsOn: "2026-09-23",
+      endsOn: "2026-09-23",
+      reason: "Flu",
+    },
+  });
+  render(<DayView {...baseProps()} />);
+
+  fireEvent.click(screen.getByRole("button", { name: "Mark an exception" }));
+  fireEvent.change(screen.getByLabelText("Reason"), {
+    target: { value: "Flu" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+  expect(await screen.findByText("Excused — Flu")).toBeInTheDocument();
+});
+
+test("EXC-06 removing an exception restores the goal's status", async () => {
+  vi.mocked(removeException).mockResolvedValue({ ok: true });
+  render(
+    <DayView
+      {...baseProps({
+        exceptions: [
+          {
+            id: "exc-1",
+            goalId: null,
+            startsOn: "2026-09-23",
+            endsOn: "2026-09-23",
+            reason: "Flu",
+          },
+        ],
+      })}
+    />,
+  );
+  expect(screen.getByText("Excused — Flu")).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "Remove exception" }));
+
+  await vi.waitFor(() => expect(removeException).toHaveBeenCalledWith("exc-1"));
+  expect(await screen.findByText("Pending")).toBeInTheDocument();
 });
