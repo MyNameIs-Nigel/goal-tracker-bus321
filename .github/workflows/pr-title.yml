@@ -1,0 +1,39 @@
+name: pr-title
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+concurrency:
+  group: pr-title-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: read
+
+jobs:
+  pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      # The squash-merge commit on main is this title, so it has to be a
+      # Conventional Commit (docs/WORKFLOW.md).
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            test
+            refactor
+            perf
+            chore
+            ci
+            build
+            style
+          requireScope: false
+          # Any case (docs/CI_CD.md), but no trailing period.
+          subjectPattern: ^.+[^.]$
+          subjectPatternError: |
+            The subject "{subject}" of "{title}" must not end with a period.

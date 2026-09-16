@@ -1,0 +1,27 @@
+# Local Postgres for development and local E2E — the same image CI runs as a
+# service container (docs/CI_CD.md, ADR-0003). Neon is only ever touched by
+# Vercel builds; nothing on a laptop points at it.
+#
+#   docker compose up -d
+#
+services:
+  postgres:
+    image: postgres:17
+    container_name: bus321-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bus321
+      POSTGRES_PASSWORD: bus321
+      POSTGRES_DB: bus321
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bus321 -d bus321"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:

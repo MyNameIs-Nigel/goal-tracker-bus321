@@ -1,0 +1,32 @@
+name: flow-check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+concurrency:
+  group: flow-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flow-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The script diffs against the base branch, so it needs its history.
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: DOCS → TESTS → CODE
+        env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          ACTOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASE"
+          node scripts/flow-check.mjs \
+            --base "origin/$BASE" \
+            --labels "$LABELS" \
+            --actor "$ACTOR"

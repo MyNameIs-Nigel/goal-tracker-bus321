@@ -2,11 +2,23 @@
   "name": "goal-tracker-bus321",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "npm run build && playwright test",
+    "trace": "node scripts/trace.mjs",
+    "db:migrate": "node scripts/db-migrate.mjs",
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
     "next": "16.3.5",
