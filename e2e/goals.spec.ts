@@ -44,7 +44,9 @@ test("GOAL-01 goals are listed by cadence, with a collapsed archived section", a
   await addGoal(page, { title: "Monthly one", cadence: "Monthly" });
   await addGoal(page, { title: "Old goal" });
   await page
-    .locator("div", { has: page.getByText("Old goal", { exact: true }) })
+    .locator("div.rounded-xl", {
+      has: page.getByText("Old goal", { exact: true }),
+    })
     .getByRole("button", { name: "Archive" })
     .first()
     .click();
@@ -89,15 +91,17 @@ test("GOAL-03 title is required and bounded", async ({ page, signInAs }) => {
   await signInAs("owner");
   await page.goto("/goals");
 
+  // Next.js's own route announcer is also `role="alert"`
+  // (`#__next-route-announcer__`); scope past it by text.
+  const formError = page.getByRole("alert").filter({ hasText: /./ });
+
   await page.getByRole("button", { name: "Add goal" }).click();
   await page.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByRole("alert")).toHaveText("Title is required");
+  await expect(formError).toHaveText("Title is required");
 
   await page.getByLabel("Title").fill("x".repeat(121));
   await page.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByRole("alert")).toHaveText(
-    "Keep the title under 120 characters",
-  );
+  await expect(formError).toHaveText("Keep the title under 120 characters");
 });
 
 test("GOAL-04 owner edits a goal's title and description", async ({
@@ -109,7 +113,9 @@ test("GOAL-04 owner edits a goal's title and description", async ({
   await addGoal(page, { title: "Original title" });
 
   await page
-    .locator("div", { has: page.getByText("Original title", { exact: true }) })
+    .locator("div.rounded-xl", {
+      has: page.getByText("Original title", { exact: true }),
+    })
     .getByRole("button", { name: "Edit" })
     .first()
     .click();
@@ -126,7 +132,9 @@ test("GOAL-06 owner changes the start date", async ({ page, signInAs }) => {
   await addGoal(page, { title: "Shift me", startsOn: "2026-09-22" });
 
   await page
-    .locator("div", { has: page.getByText("Shift me", { exact: true }) })
+    .locator("div.rounded-xl", {
+      has: page.getByText("Shift me", { exact: true }),
+    })
     .getByRole("button", { name: "Edit" })
     .first()
     .click();
@@ -135,7 +143,9 @@ test("GOAL-06 owner changes the start date", async ({ page, signInAs }) => {
   await page.getByRole("button", { name: "Save" }).click();
 
   await page
-    .locator("div", { has: page.getByText("Shift me", { exact: true }) })
+    .locator("div.rounded-xl", {
+      has: page.getByText("Shift me", { exact: true }),
+    })
     .getByRole("button", { name: "Edit" })
     .first()
     .click();
@@ -151,7 +161,9 @@ test("GOAL-07/08 archive removes a goal from the active sections; restore brings
   await addGoal(page, { title: "Archive me" });
 
   await page
-    .locator("div", { has: page.getByText("Archive me", { exact: true }) })
+    .locator("div.rounded-xl", {
+      has: page.getByText("Archive me", { exact: true }),
+    })
     .getByRole("button", { name: "Archive" })
     .first()
     .click();
@@ -159,7 +171,9 @@ test("GOAL-07/08 archive removes a goal from the active sections; restore brings
 
   await page.getByText("Archived (1)").click();
   await page
-    .locator("div", { has: page.getByText("Archive me", { exact: true }) })
+    .locator("div.rounded-xl", {
+      has: page.getByText("Archive me", { exact: true }),
+    })
     .getByRole("button", { name: "Restore" })
     .first()
     .click();
@@ -177,7 +191,7 @@ test("GOAL-10 reorder within a cadence persists after reload", async ({
   await addGoal(page, { title: "C" });
 
   await page
-    .locator("div", { has: page.getByText("C", { exact: true }) })
+    .locator("div.rounded-xl", { has: page.getByText("C", { exact: true }) })
     .getByRole("button", { name: "Move up" })
     .first()
     .click();
