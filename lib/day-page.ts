@@ -9,8 +9,8 @@ import { today as todayFn } from "@/lib/clock";
 import type { Role } from "@/lib/dal";
 import { getOwnerFirstName } from "@/lib/queries/owner";
 import { getTrackingData } from "@/lib/queries/tracking";
-import type { Completion, Exception } from "@/lib/status";
-import type { ViewGoal, Contract } from "@/lib/view/day";
+import type { Completion } from "@/lib/status";
+import type { Contract, ExceptionRecord, ViewGoal } from "@/lib/view/day";
 
 export type DayPageData = {
   date: string;
@@ -19,7 +19,7 @@ export type DayPageData = {
   ownerFirstName: string;
   goals: ViewGoal[];
   completions: Completion[];
-  exceptions: Exception[];
+  exceptions: ExceptionRecord[];
   contract: Contract;
 };
 

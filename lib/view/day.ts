@@ -6,13 +6,15 @@
 import { formatMonthName } from "@/lib/dates";
 import { isActive, periodFor, type Cadence } from "@/lib/periods";
 import {
-  excusingException,
+  excuses,
   isCompleted,
   statusOf,
   type Completion,
   type Exception,
   type Status,
 } from "@/lib/status";
+
+export type ExceptionRecord = Exception & { id: string };
 
 export type ViewGoal = {
   id: string;
@@ -35,6 +37,7 @@ export type GoalStatusView = {
   status: Status;
   completed: boolean;
   excusedReason: string | null;
+  excusedExceptionId: string | null;
   periodEnd: string;
   periodStart: string;
 };
@@ -59,7 +62,7 @@ export function buildDayGroups({
   goals: readonly ViewGoal[];
   contract: Contract;
   completions: readonly Completion[];
-  exceptions: readonly Exception[];
+  exceptions: readonly ExceptionRecord[];
 }): DayGroups {
   const groups: DayGroups = { daily: [], weekly: [], monthly: [] };
 
@@ -75,9 +78,10 @@ export function buildDayGroups({
       completions,
       exceptions,
     });
-    const excusedReason =
+    const excusingException =
       status === "excused"
-        ? (excusingException(goal, period, exceptions)?.reason ?? null)
+        ? (exceptions.find((exception) => excuses(goal, period, exception)) ??
+          null)
         : null;
 
     groups[goal.cadence].push({
@@ -86,7 +90,8 @@ export function buildDayGroups({
       cadence: goal.cadence,
       status,
       completed: isCompleted(goal.id, period.start, completions),
-      excusedReason,
+      excusedReason: excusingException?.reason ?? null,
+      excusedExceptionId: excusingException?.id ?? null,
       periodEnd: period.end,
       periodStart: period.start,
     });

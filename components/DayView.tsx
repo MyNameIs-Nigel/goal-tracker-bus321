@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 
 import { toggleCompletion } from "@/lib/actions/completions";
+import { removeException } from "@/lib/actions/exceptions";
 import { contractDayLabel } from "@/lib/contract-day";
 import {
   addDays,
@@ -20,9 +21,11 @@ import {
   failuresLabel,
   progressLabel,
   streakLabel,
+  type ExceptionRecord,
   type GoalStatusView,
 } from "@/lib/view/day";
 
+import ExceptionDialog from "@/components/ExceptionDialog";
 import type { DayPageData } from "@/lib/day-page";
 
 function statusText(goal: GoalStatusView): string {
@@ -48,15 +51,18 @@ function GoalRow({
   date,
   dueLabel,
   onToggled,
+  onExceptionRemoved,
 }: {
   goal: GoalStatusView;
   canEdit: boolean;
   date: string;
   dueLabel?: string;
   onToggled: (id: string, completed: boolean) => void;
+  onExceptionRemoved: (id: string) => void;
 }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [removePending, startRemoveTransition] = useTransition();
 
   function handleToggle() {
     if (pending) return;
@@ -68,6 +74,16 @@ function GoalRow({
         return;
       }
       onToggled(goal.id, result.completed);
+    });
+  }
+
+  function handleRemoveException() {
+    const exceptionId = goal.excusedExceptionId;
+    if (!exceptionId || removePending) return;
+    if (!window.confirm("Remove this exception?")) return;
+    startRemoveTransition(async () => {
+      const result = await removeException(exceptionId);
+      if (result.ok) onExceptionRemoved(exceptionId);
     });
   }
 
@@ -104,22 +120,37 @@ function GoalRow({
     </>
   );
 
-  const className =
+  const rowClassName =
     "flex min-h-12 w-full items-center gap-3 rounded-xl border border-border p-3 text-left";
 
-  if (!canEdit) {
-    return <div className={className}>{content}</div>;
-  }
+  const canRemoveException =
+    canEdit && goal.status === "excused" && goal.excusedExceptionId;
 
   return (
-    <button
-      type="button"
-      onClick={handleToggle}
-      disabled={pending}
-      className={`${className} cursor-pointer`}
-    >
-      {content}
-    </button>
+    <div className="flex flex-col gap-1">
+      {canEdit ? (
+        <button
+          type="button"
+          onClick={handleToggle}
+          disabled={pending}
+          className={`${rowClassName} cursor-pointer`}
+        >
+          {content}
+        </button>
+      ) : (
+        <div className={rowClassName}>{content}</div>
+      )}
+      {canRemoveException && (
+        <button
+          type="button"
+          onClick={handleRemoveException}
+          disabled={removePending}
+          className="self-start pl-3 text-xs font-medium text-muted underline"
+        >
+          Remove exception
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -128,6 +159,10 @@ export default function DayView(props: DayPageData) {
   const [completions, setCompletions] = useState<Completion[]>(
     props.completions,
   );
+  const [exceptions, setExceptions] = useState<ExceptionRecord[]>(
+    props.exceptions,
+  );
+  const [exceptionDialogOpen, setExceptionDialogOpen] = useState(false);
 
   function handleToggled(id: string, completed: boolean) {
     const goal = props.goals.find((g) => g.id === id);
@@ -144,6 +179,15 @@ export default function DayView(props: DayPageData) {
     });
   }
 
+  function handleExceptionCreated(exception: ExceptionRecord) {
+    setExceptions((prev) => [...prev, exception]);
+    setExceptionDialogOpen(false);
+  }
+
+  function handleExceptionRemoved(id: string) {
+    setExceptions((prev) => prev.filter((exception) => exception.id !== id));
+  }
+
   const canEdit =
     props.role === "owner" && compareDates(props.date, props.todayDate) <= 0;
 
@@ -155,7 +199,7 @@ export default function DayView(props: DayPageData) {
         goals: props.goals,
         contract: props.contract,
         completions,
-        exceptions: props.exceptions,
+        exceptions,
       }),
     [
       props.date,
@@ -163,7 +207,7 @@ export default function DayView(props: DayPageData) {
       props.goals,
       props.contract,
       completions,
-      props.exceptions,
+      exceptions,
     ],
   );
 
@@ -174,14 +218,14 @@ export default function DayView(props: DayPageData) {
         dailyGoals: props.goals.filter((g) => g.cadence === "daily"),
         contract: props.contract,
         completions,
-        exceptions: props.exceptions,
+        exceptions,
       }),
     [
       props.todayDate,
       props.goals,
       props.contract,
       completions,
-      props.exceptions,
+      exceptions,
     ],
   );
 
@@ -193,14 +237,14 @@ export default function DayView(props: DayPageData) {
         goals: props.goals,
         contract: props.contract,
         completions,
-        exceptions: props.exceptions,
+        exceptions,
       }),
     [
       props.todayDate,
       props.goals,
       props.contract,
       completions,
-      props.exceptions,
+      exceptions,
     ],
   );
 
@@ -276,6 +320,7 @@ export default function DayView(props: DayPageData) {
                 canEdit={canEdit}
                 date={props.date}
                 onToggled={handleToggled}
+                onExceptionRemoved={handleExceptionRemoved}
               />
             ))}
           </div>
@@ -296,6 +341,7 @@ export default function DayView(props: DayPageData) {
                 date={props.date}
                 dueLabel={formatWeekdayShort(goal.periodEnd)}
                 onToggled={handleToggled}
+                onExceptionRemoved={handleExceptionRemoved}
               />
             ))}
           </div>
@@ -316,11 +362,30 @@ export default function DayView(props: DayPageData) {
                 date={props.date}
                 dueLabel={formatWeekdayShort(goal.periodEnd)}
                 onToggled={handleToggled}
+                onExceptionRemoved={handleExceptionRemoved}
               />
             ))}
           </div>
         </section>
       )}
+
+      {props.role === "owner" &&
+        (exceptionDialogOpen ? (
+          <ExceptionDialog
+            date={props.date}
+            goals={props.goals}
+            onCancel={() => setExceptionDialogOpen(false)}
+            onCreated={handleExceptionCreated}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setExceptionDialogOpen(true)}
+            className="self-start rounded-full border border-border px-4 py-2 text-sm font-medium"
+          >
+            Mark an exception
+          </button>
+        ))}
     </div>
   );
 }
