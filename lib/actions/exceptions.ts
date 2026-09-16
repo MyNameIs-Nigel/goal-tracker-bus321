@@ -18,8 +18,7 @@ export type ExceptionInput = {
 };
 
 export type ExceptionActionResult =
-  | { ok: true; exception: ExceptionRecord }
-  | { ok: false; error: string };
+  { ok: true; exception: ExceptionRecord } | { ok: false; error: string };
 
 export type SimpleActionResult = { ok: true } | { ok: false; error: string };
 

@@ -31,7 +31,12 @@ beforeEach(() => {
 
 test("EXC-02 defaults to whole-day scope with both dates on the page's date", () => {
   render(
-    <ExceptionDialog date="2026-09-24" goals={goals} onCancel={vi.fn()} onCreated={vi.fn()} />,
+    <ExceptionDialog
+      date="2026-09-24"
+      goals={goals}
+      onCancel={vi.fn()}
+      onCreated={vi.fn()}
+    />,
   );
   expect(screen.getByLabelText("Whole day")).toBeChecked();
   expect(screen.getByLabelText("From")).toHaveValue("2026-09-24");
@@ -41,11 +46,18 @@ test("EXC-02 defaults to whole-day scope with both dates on the page's date", ()
 
 test("EXC-03 switching to 'One goal' reveals the goal select", () => {
   render(
-    <ExceptionDialog date="2026-09-24" goals={goals} onCancel={vi.fn()} onCreated={vi.fn()} />,
+    <ExceptionDialog
+      date="2026-09-24"
+      goals={goals}
+      onCancel={vi.fn()}
+      onCreated={vi.fn()}
+    />,
   );
   fireEvent.click(screen.getByLabelText("One goal"));
   expect(screen.getByLabelText("Goal")).toBeInTheDocument();
-  expect(screen.getByRole("option", { name: "Read 20 pages" })).toBeInTheDocument();
+  expect(
+    screen.getByRole("option", { name: "Read 20 pages" }),
+  ).toBeInTheDocument();
 });
 
 test("EXC-02 saving a whole-day exception calls createException and reports it", async () => {
@@ -60,9 +72,16 @@ test("EXC-02 saving a whole-day exception calls createException and reports it",
   const onCreated = vi.fn();
 
   render(
-    <ExceptionDialog date="2026-09-24" goals={goals} onCancel={vi.fn()} onCreated={onCreated} />,
+    <ExceptionDialog
+      date="2026-09-24"
+      goals={goals}
+      onCancel={vi.fn()}
+      onCreated={onCreated}
+    />,
   );
-  fireEvent.change(screen.getByLabelText("Reason"), { target: { value: "Flu" } });
+  fireEvent.change(screen.getByLabelText("Reason"), {
+    target: { value: "Flu" },
+  });
   fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
   await vi.waitFor(() => expect(onCreated).toHaveBeenCalledWith(exception));
@@ -81,7 +100,12 @@ test("EXC-05 shows the inline error returned by the action", async () => {
     error: "A reason is required",
   });
   render(
-    <ExceptionDialog date="2026-09-24" goals={goals} onCancel={vi.fn()} onCreated={vi.fn()} />,
+    <ExceptionDialog
+      date="2026-09-24"
+      goals={goals}
+      onCancel={vi.fn()}
+      onCreated={vi.fn()}
+    />,
   );
   fireEvent.click(screen.getByRole("button", { name: "Save" }));
 

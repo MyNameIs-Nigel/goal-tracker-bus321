@@ -47,7 +47,9 @@ const insertedRow = {
 
 beforeEach(() => {
   requireUserMock.mockReset().mockResolvedValue(owner);
-  insertValuesMock.mockReset().mockReturnValue({ returning: insertReturningMock });
+  insertValuesMock
+    .mockReset()
+    .mockReturnValue({ returning: insertReturningMock });
   insertReturningMock.mockReset().mockResolvedValue([insertedRow]);
   deleteWhereMock.mockClear();
 });
@@ -77,7 +79,11 @@ test("EXC-03 creates a goal-specific exception", async () => {
 });
 
 test("EXC-03 rejects scope 'goal' with no goal chosen", async () => {
-  const result = await createException({ ...baseInput, scope: "goal", goalId: null });
+  const result = await createException({
+    ...baseInput,
+    scope: "goal",
+    goalId: null,
+  });
   expect(result).toEqual({ ok: false, error: "Choose a goal." });
   expect(insertValuesMock).not.toHaveBeenCalled();
 });

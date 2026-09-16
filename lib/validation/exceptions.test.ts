@@ -22,18 +22,30 @@ test("EXC-05 rejects a reason over 280 characters", () => {
 
 test("EXC-05 rejects an end date before the start date", () => {
   expect(
-    validateExceptionInput({ ...base, startsOn: "2026-09-25", endsOn: "2026-09-24" }),
+    validateExceptionInput({
+      ...base,
+      startsOn: "2026-09-25",
+      endsOn: "2026-09-24",
+    }),
   ).toBe("End date can't be before start date");
 });
 
 test("EXC-05 rejects a range longer than 31 days", () => {
   expect(
-    validateExceptionInput({ ...base, startsOn: "2026-09-01", endsOn: "2026-10-03" }),
+    validateExceptionInput({
+      ...base,
+      startsOn: "2026-09-01",
+      endsOn: "2026-10-03",
+    }),
   ).toBe("Exceptions can cover at most 31 days");
 });
 
 test("EXC-05 accepts a range of exactly 31 days", () => {
   expect(
-    validateExceptionInput({ ...base, startsOn: "2026-09-01", endsOn: "2026-10-02" }),
+    validateExceptionInput({
+      ...base,
+      startsOn: "2026-09-01",
+      endsOn: "2026-10-02",
+    }),
   ).toBeNull();
 });

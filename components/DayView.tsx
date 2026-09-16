@@ -220,13 +220,7 @@ export default function DayView(props: DayPageData) {
         completions,
         exceptions,
       }),
-    [
-      props.todayDate,
-      props.goals,
-      props.contract,
-      completions,
-      exceptions,
-    ],
+    [props.todayDate, props.goals, props.contract, completions, exceptions],
   );
 
   const failures = useMemo(
@@ -239,13 +233,7 @@ export default function DayView(props: DayPageData) {
         completions,
         exceptions,
       }),
-    [
-      props.todayDate,
-      props.goals,
-      props.contract,
-      completions,
-      exceptions,
-    ],
+    [props.todayDate, props.goals, props.contract, completions, exceptions],
   );
 
   const hasAnyGoals =

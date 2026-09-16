@@ -9,9 +9,8 @@ vi.mock("@/lib/actions/exceptions", () => ({
 
 const { default: DayView } = await import("./DayView");
 const { toggleCompletion } = await import("@/lib/actions/completions");
-const { createException, removeException } = await import(
-  "@/lib/actions/exceptions"
-);
+const { createException, removeException } =
+  await import("@/lib/actions/exceptions");
 
 const noContract = { contractStart: null, contractEnd: null };
 
