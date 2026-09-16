@@ -98,9 +98,15 @@ Every read of another user's data goes through these; every Server Action starts
 | | Production | Preview (each PR) | CI (GitHub Actions) | Local dev |
 |---|---|---|---|---|
 | URL | `bus321.nigel-smith.dev` (+ `goal-tracker-bus321.vercel.app` redirecting to it) | `goal-tracker-bus321-git-<branch>-….vercel.app` | `localhost:3000` | `localhost:3000` |
-| Database | Neon main branch | Neon preview branch (branching status: **to be verified in Phase 0**; else main — additive migrations only) | Postgres service container | **Postgres in Docker** (`docker compose up -d`) — never Neon |
+| Database | Neon main branch | Neon preview branch (branching status: **still unverified** — reading it needs the Neon console, which is [H9](HUMAN_TASKS.md#h9-turn-on-branch-protection-and-set-the-preview-env-vars); if off, previews share main — additive migrations only) | Postgres service container | **Postgres in Docker** (`docker compose up -d`) — never Neon |
 | Sign-in | Google | **test sign-in** (`E2E_AUTH=1`) | test sign-in | test sign-in (Google optional) |
 | Migrations | in the Vercel build command | in the Vercel build command | before the E2E job | `npm run db:migrate` |
+
+As of Phase 0 the Vercel project already carries the domains
+`goal-tracker-bus321.vercel.app` and `bus321.nigel-smith.dev` (the latter added
+but not yet resolving — it needs the Cloudflare record in
+[H6](HUMAN_TASKS.md#h6-point-bus321nigel-smithdev-at-vercel)), and runs Node 24.x,
+matching `.nvmrc` and `engines.node`.
 
 **Test sign-in** exists because Google OAuth can't be automated and doesn't accept wildcard redirect URIs for preview URLs. When `E2E_AUTH=1` **and** `VERCEL_ENV !== "production"`, the sign-in page shows three extra buttons (Owner / Partner / Viewer) and `POST /api/e2e/sign-in` creates a session for a seeded user with that role; `POST /api/e2e/reset` truncates app tables and reseeds. Otherwise those routes are 404 and the buttons don't render. Production never sets the flag; the `VERCEL_ENV` guard is the second lock. Preview deployments additionally sit behind Vercel's own deployment protection (only Nigel's Vercel account can open them).
 
