@@ -13,6 +13,10 @@ The page everyone opens. It answers, in one glance: what was Nigel supposed to d
 
 Owner: toggle completions for dates ≤ today; open the exception dialog (see [exceptions.md](exceptions.md)). Partner: read + check-in section (see [partner-check-ins.md](partner-check-ins.md)). Viewer: read.
 
+## Phased test coverage
+
+This spec's page (`/today`, `/day/[date]`) is built in full this phase, except the **Accountability partners** section it lists (DT-16): that section's actual content — who's checked in, the button, the note — is [partner-check-ins.md](partner-check-ins.md), which doesn't ship until Phase 3. DT-16 is deferred with it; the day pages simply have no partner section until then. Exceptions (`excused` status, EXC-*) ship in this phase's third PR, alongside this one.
+
 ## Scenarios
 
 ### DT-01 The header names the day and the contract day
