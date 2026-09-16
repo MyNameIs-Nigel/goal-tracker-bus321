@@ -10,7 +10,7 @@ The plan for taking this from a blank `create-next-app` to a live tracker at `ht
 |-------|------|--------|--------|
 | 0 | Foundation — tooling, CI/CD, Vercel | ✅ done 2026-09-16 (H9 ✅, Neon branching on) | Wed 9/16 |
 | 1 | Auth & roles | 🔄 code merged & deployed ([#6](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/6)); production sign-in verification needs Nigel (this sandbox's network can't reach `bus321.nigel-smith.dev`, and Claude never completes Google OAuth for him) | Wed 9/16 – Thu 9/17 |
-| 2 | Goals & daily tracking | ☐ not started | Thu 9/17 – Fri 9/18 |
+| 2 | Goals & daily tracking | 🔄 in progress (started 2026-09-16) | Thu 9/17 – Fri 9/18 |
 | 3 | Partners, contract & vision, history | ☐ not started | Fri 9/18 – Sat 9/19 |
 | 4 | Launch | ☐ not started | Sat 9/19 |
 | 5 | Owner reminders (post-launch) | ☐ not started | after launch |

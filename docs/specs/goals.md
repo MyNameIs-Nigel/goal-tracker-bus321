@@ -81,7 +81,7 @@ Owner: full CRUD, reorder, archive. Partner / viewer: read.
 
 ## UI
 
-- Each goal is one row: title (medium weight), description (muted, one or two lines), and for the owner an overflow menu (Edit · Move up · Move down · Archive).
+- Each goal is one row: title (medium weight), description (muted, one or two lines), and for the owner a row of small text actions (Edit · Move up · Move down · Archive), always visible rather than tucked behind a menu — there are at most a handful of goals, so there's nothing to hide.
 - Add/Edit is an inline form (or a sheet on phones): Title, Description (textarea), Cadence (three radio pills: Daily / Weekly / Monthly), Start date (native `<input type="date">`), Save / Cancel.
 - Archive and Delete confirm with a one-line native `confirm()`-style dialog; nothing fancy.
 
