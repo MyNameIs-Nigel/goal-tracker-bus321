@@ -13,6 +13,10 @@ The contract allows for sickness, holidays and travel. An exception is the owner
 
 Owner: create, remove. Everyone: see.
 
+## Phased test coverage
+
+The `excused` half of [DATA_MODEL.md § Status of (G, P)](../DATA_MODEL.md#status-of-g-p) — `excuses()`/`excusingException()` in `lib/status.ts`, and the coverage rules in EXC-02/03/04/07/08 — shipped with daily-tracking.md's PR, since `statusOf` needs it regardless of whether this spec's own UI exists yet. This PR adds the rest: the dialog, `createException`/`removeException`, and the remaining scenarios (EXC-01/05/06/09).
+
 ## Scenarios
 
 ### EXC-01 Owner can open the dialog on any day
