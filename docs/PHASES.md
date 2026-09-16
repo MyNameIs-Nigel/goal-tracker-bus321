@@ -9,7 +9,7 @@ The plan for taking this from a blank `create-next-app` to a live tracker at `ht
 | Phase | Name | Status | Target |
 |-------|------|--------|--------|
 | 0 | Foundation — tooling, CI/CD, Vercel | ✅ done 2026-09-16 (H9 ✅, Neon branching on) | Wed 9/16 |
-| 1 | Auth & roles | 🔄 in progress — H3 ✅ H4 ✅ H5 ✅; nothing human-blocked | Wed 9/16 – Thu 9/17 |
+| 1 | Auth & roles | 🔄 code merged & deployed ([#6](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/6)); production sign-in verification needs Nigel (this sandbox's network can't reach `bus321.nigel-smith.dev`, and Claude never completes Google OAuth for him) | Wed 9/16 – Thu 9/17 |
 | 2 | Goals & daily tracking | ☐ not started | Thu 9/17 – Fri 9/18 |
 | 3 | Partners, contract & vision, history | ☐ not started | Fri 9/18 – Sat 9/19 |
 | 4 | Launch | ☐ not started | Sat 9/19 |
@@ -78,10 +78,12 @@ If 9/19 is at risk, this is what must be live for the contract to start, in prio
 **Code (outline):** Drizzle schema + first migration (Better Auth tables with `role`, plus the app tables from [DATA_MODEL.md](DATA_MODEL.md) so later phases only add data, not structure); Better Auth with Google provider + Drizzle adapter + owner bootstrap hook; `proxy.ts` optimistic redirect; Data Access Layer (`requireUser`, `requireOwner`, `requirePartner`); test-mode endpoints (`/api/e2e/sign-in`, `/api/e2e/reset`) and seed; sign-in page; authenticated layout with nav and user menu; `/people`.
 
 **Exit criteria:**
-- [ ] Every scenario ID in the three specs has a passing test (unit, component, or E2E).
-- [ ] On production: Nigel signs in with Google and lands on `/today` as owner; a second Google account lands as viewer; Nigel promotes it to partner on `/people`; the change is effective on that user's next page load.
-- [ ] Unauthenticated `/today` redirects to `/`; `/people` is a 404 for non-owners; `/api/e2e/*` is a 404 in production.
-- [ ] Preview deployment: the three test sign-in buttons work.
+- [x] Every scenario ID in the three specs has a passing test (unit, component, or E2E) — [#6](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/6), all nine checks green, `npm run trace` shows no gap for `authentication`/`roles-and-permissions`/`people` beyond the documented Phase 2/3 deferrals (ROLE-04 and the goal/document parts of ROLE-03/05). Verified locally against a real Postgres (48/48 Playwright, both projects) since this sandbox has no Docker; CI's own Postgres-17-container run is the canonical check and was green before merge.
+- [ ] On production: Nigel signs in with Google and lands on `/today` as owner; a second Google account lands as viewer; Nigel promotes it to partner on `/people`; the change is effective on that user's next page load. **Needs Nigel** — Claude never completes an OAuth consent on his behalf (`WORKFLOW.md`), and this session's network egress is policy-blocked even from reading the production URL to check the surrounding UI (confirmed via the agent proxy: `CONNECT` to `bus321.nigel-smith.dev` and generic web hosts alike return 403). Production build **is** live and green (Vercel deployment `dpl_Hq7ZajRDBmasVnR2J9RoNVsyBWBp`, aliased to `bus321.nigel-smith.dev`, state `READY`).
+- [ ] Unauthenticated `/today` redirects to `/`; `/people` is a 404 for non-owners; `/api/e2e/*` is a 404 in production. Guaranteed by the code (`proxy.ts`, `requireOwner()`, and `isE2eEnabled()`'s `VERCEL_ENV !== "production"` gate) and covered by `e2e/authentication.spec.ts` / `e2e/roles-and-permissions.spec.ts` against the same logic — but not re-clicked-through on the real production URL, for the same sandbox reason as above.
+- [ ] Preview deployment: the three test sign-in buttons work. Same limitation — the preview URL is also outside this session's reachable network.
+
+A session with normal network access (or Nigel himself) should complete the three unchecked boxes above; nothing else is blocking.
 
 ---
 
