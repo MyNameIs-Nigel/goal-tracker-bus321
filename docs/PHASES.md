@@ -12,7 +12,7 @@ The plan for taking this from a blank `create-next-app` to a live tracker at `ht
 | 1 | Auth & roles | 🔄 code merged & deployed ([#6](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/6)); production sign-in verification needs Nigel (this sandbox's network can't reach `bus321.nigel-smith.dev`, and Claude never completes Google OAuth for him) | Wed 9/16 – Thu 9/17 |
 | 2 | Goals & daily tracking | 🔄 code merged & deployed ([#8](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/8), [#9](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/9), [#10](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/10)); production verification needs Nigel, same sandbox limitation as Phase 1 | Thu 9/17 – Fri 9/18 |
 | 3 | Partners, contract & vision, history | 🔄 code merged & deployed 2026-09-16 ([#13](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/13), [#14](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/14), [#15](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/15)); production sign-in verification needs Nigel, as in Phases 1–2 | Fri 9/18 – Sat 9/19 |
-| 4 | Launch | ☐ not started | Sat 9/19 |
+| 4 | Launch | 🔄 started 2026-09-17; theme control, launch audit, and server-response performance; H7/H8 deferred by Nigel | Sat 9/19 |
 | 5 | Owner reminders (post-launch) | ☐ not started | after launch |
 
 Claude updates this table as phases start and finish (✅ done, 🔄 in progress, ⏸ blocked on Hn).

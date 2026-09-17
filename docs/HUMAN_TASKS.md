@@ -14,10 +14,10 @@ The rule: you touch things that require *your* Google / Vercel / Cloudflare / Gi
 | [H4](#h4-create-the-google-oauth-client) | Create the Google OAuth client | Phase 1 | 10 min | ✅ 2026-09-16 |
 | [H5](#h5-put-the-google-secrets-and-your-owner-email-into-vercel) | Put the Google secrets and your owner email into Vercel | Phase 1 | 2 min | ✅ 2026-09-16 |
 | [H6](#h6-point-bus321nigel-smithdev-at-vercel) | Point `bus321.nigel-smith.dev` at Vercel (one Cloudflare record) | Phase 4 | 5 min | ✅ 2026-09-16 |
-| [H7](#h7-write-your-content-in-the-app) | Write your vision, contract, and goals *in the app* | Phase 4 | your call | ☐ |
-| [H8](#h8-share-the-link-with-your-partners) | Share the link with your partners; promote them | Phase 4 | 2 min | ☐ |
+| [H7](#h7-write-your-content-in-the-app) | Write your vision, contract, and goals *in the app* | Phase 4 | your call | Deferred by Nigel 2026-09-17; content not saved yet |
+| [H8](#h8-share-the-link-with-your-partners) | Share the link with your partners; promote them | Phase 4 | 2 min | Deferred by Nigel 2026-09-17 |
 | [H9](#h9-turn-on-branch-protection-and-set-the-preview-env-vars) | Turn on branch protection, the merge settings, and the Vercel env vars | Phase 0 | 5 min | ✅ 2026-09-16 — Neon branching **on** (superseded by H10) |
-| [H10](#h10-turn-off-neon-preview-branching) | Turn off Neon preview branching; rescope `DATABASE_URL` to Production only | Phase 2 | 10 min | ☐ |
+| [H10](#h10-turn-off-neon-preview-branching) | Turn off Neon preview branching; rescope `DATABASE_URL` to Production only | Phase 2 | 10 min | ✅ confirmed by Nigel 2026-09-17 |
 
 Everything else — tooling, CI, Vercel project wiring, non-secret env vars, migrations, tests, code, PRs, merges, deploys — is Claude's job. See [PHASES.md](PHASES.md) for which phase asks for which task, and [WORKFLOW.md](WORKFLOW.md) for what Claude does without asking.
 
