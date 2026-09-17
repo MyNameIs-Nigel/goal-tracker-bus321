@@ -39,9 +39,9 @@ beforeEach(() => {
   getSessionMock.mockReset();
 });
 
-test("canPartner is true for partner and owner, false for viewer", () => {
+test("canPartner is true only for a partner (the owner is not a partner)", () => {
   expect(canPartner("partner")).toBe(true);
-  expect(canPartner("owner")).toBe(true);
+  expect(canPartner("owner")).toBe(false);
   expect(canPartner("viewer")).toBe(false);
 });
 
@@ -63,12 +63,14 @@ test("ROLE-03 requirePartner throws Forbidden for a viewer", async () => {
   await expect(requirePartner()).rejects.toThrow("Forbidden");
 });
 
-test("requirePartner succeeds for a partner and for the owner", async () => {
+test("requirePartner succeeds for a partner", async () => {
   getSessionMock.mockResolvedValue(sessionFor("partner"));
   await expect(requirePartner()).resolves.toMatchObject({ role: "partner" });
+});
 
+test("PCI-06 requirePartner throws Forbidden for the owner too", async () => {
   getSessionMock.mockResolvedValue(sessionFor("owner"));
-  await expect(requirePartner()).resolves.toMatchObject({ role: "owner" });
+  await expect(requirePartner()).rejects.toThrow("Forbidden");
 });
 
 test("ROLE-02 requireOwner is notFound() for a viewer or a partner", async () => {

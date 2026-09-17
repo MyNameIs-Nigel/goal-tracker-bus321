@@ -1,6 +1,12 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
-/** Fills and saves the /goals "Add goal" form (docs/specs/goals.md). */
+/**
+ * Fills and saves the /goals "Add goal" form (docs/specs/goals.md), then
+ * waits for the new row to render. Without that wait a test that navigates
+ * straight after can abort the in-flight Server Action (the row is added
+ * client-side only once the action returns), which on a fast machine loses
+ * the goal entirely.
+ */
 export async function addGoal(
   page: Page,
   {
@@ -23,6 +29,11 @@ export async function addGoal(
   await page.locator("form").getByText(cadence, { exact: true }).click();
   if (startsOn) await page.getByLabel("Start date").fill(startsOn);
   await page.getByRole("button", { name: "Save" }).click();
+  await expect(
+    page.locator("div.rounded-xl", {
+      has: page.getByText(title, { exact: true }),
+    }),
+  ).toBeVisible();
 }
 
 /** Reseeds and pins lib/clock.ts to `now` (docs/TESTING.md § Clock). */
