@@ -71,7 +71,7 @@ test("ROLE-07 role changes take effect immediately, without re-signing in", asyn
   });
   await viewerPage.goto("/today");
   await viewerPage.getByRole("button", { name: "User menu" }).click();
-  await expect(viewerPage.getByRole("menu")).toContainText("Viewer");
+  await expect(viewerPage.getByRole("region", { name: "Your profile" })).toContainText("Viewer");
   await viewerPage.getByRole("button", { name: "User menu" }).click();
 
   await signInAs("owner");
@@ -83,7 +83,7 @@ test("ROLE-07 role changes take effect immediately, without re-signing in", asyn
 
   await viewerPage.goto("/today");
   await viewerPage.getByRole("button", { name: "User menu" }).click();
-  await expect(viewerPage.getByRole("menu")).toContainText("Partner");
+  await expect(viewerPage.getByRole("region", { name: "Your profile" })).toContainText("Partner");
 
   await viewerContext.close();
 });
