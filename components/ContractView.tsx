@@ -74,7 +74,7 @@ function DocumentSection({
           <button
             type="button"
             onClick={startEditing}
-            className="rounded-full border border-border px-4 py-1.5 text-sm font-medium"
+            className="ui-hover-surface rounded-full border border-border px-4 py-1.5 text-sm font-medium"
           >
             Edit
           </button>
@@ -94,14 +94,14 @@ function DocumentSection({
               type="button"
               onClick={save}
               disabled={pending}
-              className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+              className="ui-hover-solid rounded-full bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
             >
               Save
             </button>
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="rounded-full border border-border px-4 py-2 text-sm font-medium"
+              className="ui-hover-surface rounded-full border border-border px-4 py-2 text-sm font-medium"
             >
               Cancel
             </button>
@@ -170,7 +170,7 @@ function ContractDates({
               setError(null);
               setEditing(true);
             }}
-            className="rounded-full border border-border px-3 py-1 text-xs font-medium"
+            className="ui-hover-surface rounded-full border border-border px-3 py-1 text-xs font-medium"
           >
             Edit dates
           </button>
@@ -191,7 +191,7 @@ function ContractDates({
             type="date"
             value={start}
             onChange={(event) => setStart(event.target.value)}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="ui-hover-edge rounded-lg border border-border bg-background px-3 py-2 text-sm"
           />
         </label>
         <label className="flex flex-1 flex-col gap-1 text-sm font-medium">
@@ -200,7 +200,7 @@ function ContractDates({
             type="date"
             value={end}
             onChange={(event) => setEnd(event.target.value)}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="ui-hover-edge rounded-lg border border-border bg-background px-3 py-2 text-sm"
           />
         </label>
       </div>
@@ -213,14 +213,14 @@ function ContractDates({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="ui-hover-solid rounded-full bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
         >
           Save dates
         </button>
         <button
           type="button"
           onClick={() => setEditing(false)}
-          className="rounded-full border border-border px-4 py-2 text-sm font-medium"
+          className="ui-hover-surface rounded-full border border-border px-4 py-2 text-sm font-medium"
         >
           Cancel
         </button>

@@ -24,8 +24,8 @@ Six classes in `app/globals.css`, applied in the markup. Tests name the class, s
 | `ui-hover-accent` | text-only controls: nav links, inline buttons ("Edit", "Archive", "Remove exception"), date and month navigation | inherited colour | `color: var(--accent)` |
 | `ui-hover-underline` | inline links already drawn in the accent ("Add one", "Promote someone on the People page") | accent, no underline | `color: var(--accent-hover)` + underline |
 | `ui-hover-solid` | filled accent buttons ("Add goal", "Save", "Continue with Google", "I checked today") | `bg-accent` | `background-color: var(--accent-hover)` |
-| `ui-hover-surface` | bordered **interactive** things: outline buttons, checkable goal rows, selects, cadence pills, table rows | `border-border`, no fill | `border-color: var(--accent)` **and** `background-color: var(--accent-soft)` |
-| `ui-hover-edge` | bordered **non-interactive** blocks and form fields: the failure / exception / completion boxes, partner cards, goal cards, people rows, inputs and textareas | `border-border` | `border-color: var(--accent)` only — no fill, because nothing happens if you click |
+| `ui-hover-surface` | bordered **interactive** things: outline buttons, checkable goal rows, selects, cadence pills | `border-border`, no fill | `border-color: var(--accent)` **and** `background-color: var(--accent-soft)` |
+| `ui-hover-edge` | bordered **non-interactive** blocks and form fields: the failure / exception / completion boxes, the weekly & monthly table rows, partner cards, goal cards, people rows, inputs and textareas | `border-border` | `border-color: var(--accent)` only — no fill, because nothing happens if you click |
 | `ui-hover-outline` | things whose own box must not change: history day cells, the avatar button | `outline: 2px solid transparent` | `outline-color: var(--accent)` |
 
 Two new tokens sit beside `--accent` in both colour schemes: `--accent-hover` (a step darker in light, a step lighter in dark, for filled buttons) and `--accent-soft` (the accent at low opacity, for tints).

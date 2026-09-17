@@ -54,7 +54,7 @@ export default function ExceptionDialog({
     >
       <fieldset className="flex flex-col gap-2">
         <legend className="text-sm font-medium">Scope</legend>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="ui-hover-accent flex items-center gap-2 text-sm">
           <input
             type="radio"
             name="exception-scope"
@@ -63,7 +63,7 @@ export default function ExceptionDialog({
           />
           Whole day
         </label>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="ui-hover-accent flex items-center gap-2 text-sm">
           <input
             type="radio"
             name="exception-scope"
@@ -77,7 +77,7 @@ export default function ExceptionDialog({
             aria-label="Goal"
             value={goalId}
             onChange={(event) => setGoalId(event.target.value)}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="ui-hover-surface rounded-lg border border-border bg-background px-3 py-2 text-sm"
           >
             {activeGoals.map((goal) => (
               <option key={goal.id} value={goal.id}>
@@ -95,7 +95,7 @@ export default function ExceptionDialog({
             type="date"
             value={startsOn}
             onChange={(event) => setStartsOn(event.target.value)}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="ui-hover-edge rounded-lg border border-border bg-background px-3 py-2 text-sm"
           />
         </label>
         <label className="flex flex-1 flex-col gap-1 text-sm font-medium">
@@ -104,7 +104,7 @@ export default function ExceptionDialog({
             type="date"
             value={endsOn}
             onChange={(event) => setEndsOn(event.target.value)}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="ui-hover-edge rounded-lg border border-border bg-background px-3 py-2 text-sm"
           />
         </label>
       </div>
@@ -118,7 +118,7 @@ export default function ExceptionDialog({
           value={reason}
           onChange={(event) => setReason(event.target.value)}
           rows={2}
-          className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          className="ui-hover-edge rounded-lg border border-border bg-background px-3 py-2 text-sm"
         />
         <span className="text-xs text-muted">{reason.length}/280</span>
       </div>
@@ -133,14 +133,14 @@ export default function ExceptionDialog({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white"
+          className="ui-hover-solid rounded-full bg-accent px-4 py-2 text-sm font-medium text-white"
         >
           Save
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-full border border-border px-4 py-2 text-sm font-medium"
+          className="ui-hover-surface rounded-full border border-border px-4 py-2 text-sm font-medium"
         >
           Cancel
         </button>

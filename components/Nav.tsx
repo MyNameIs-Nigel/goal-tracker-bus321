@@ -20,16 +20,13 @@ export default function Nav({ role }: { role: Role }) {
         <Link
           key={link.href}
           href={link.href}
-          className="text-foreground/80 hover:text-foreground"
+          className="text-foreground/80 ui-hover-accent"
         >
           {link.label}
         </Link>
       ))}
       {role === "owner" && (
-        <Link
-          href="/people"
-          className="text-foreground/80 hover:text-foreground"
-        >
+        <Link href="/people" className="text-foreground/80 ui-hover-accent">
           People
         </Link>
       )}

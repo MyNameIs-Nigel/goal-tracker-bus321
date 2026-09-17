@@ -89,7 +89,8 @@ test("HOVER-05 a history day shows an outline on hover, and only that day", asyn
 }) => {
   test.skip(isMobile, "touch devices get no hover accent — that is HOVER-10");
   await signInAs("viewer");
-  await page.goto("/history");
+  // An explicit month, so the test doesn't depend on when CI runs.
+  await page.goto("/history?month=2026-09");
 
   const day = page.getByRole("link", { name: /^September 10/ });
   const neighbour = page.getByRole("link", { name: /^September 11/ });

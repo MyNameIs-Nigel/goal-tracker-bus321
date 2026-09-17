@@ -79,7 +79,7 @@ export default function GoalList({
           <button
             type="button"
             onClick={() => setAddFormOpen(true)}
-            className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white"
+            className="ui-hover-solid rounded-full bg-accent px-4 py-2 text-sm font-medium text-white"
           >
             Add goal
           </button>
@@ -136,7 +136,7 @@ export default function GoalList({
                 ) : (
                   <div
                     key={goal.id}
-                    className="flex min-h-12 flex-col gap-2 rounded-xl border border-border p-3 sm:flex-row sm:items-center sm:justify-between"
+                    className="ui-hover-edge flex min-h-12 flex-col gap-2 rounded-xl border border-border p-3 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div>
                       <p className="font-medium">{goal.title}</p>
@@ -149,6 +149,7 @@ export default function GoalList({
                         <button
                           type="button"
                           onClick={() => setEditingId(goal.id)}
+                          className="ui-hover-accent"
                         >
                           Edit
                         </button>
@@ -156,7 +157,7 @@ export default function GoalList({
                           type="button"
                           disabled={index === 0}
                           onClick={() => handleMove(goal, "up")}
-                          className="disabled:opacity-40"
+                          className="ui-hover-accent disabled:opacity-40"
                         >
                           Move up
                         </button>
@@ -164,13 +165,14 @@ export default function GoalList({
                           type="button"
                           disabled={index === list.length - 1}
                           onClick={() => handleMove(goal, "down")}
-                          className="disabled:opacity-40"
+                          className="ui-hover-accent disabled:opacity-40"
                         >
                           Move down
                         </button>
                         <button
                           type="button"
                           onClick={() => handleArchive(goal)}
+                          className="ui-hover-accent"
                         >
                           Archive
                         </button>
@@ -185,8 +187,8 @@ export default function GoalList({
       })}
 
       {archived.length > 0 && (
-        <details className="rounded-xl border border-border p-3">
-          <summary className="cursor-pointer text-sm font-medium text-muted">
+        <details className="ui-hover-edge rounded-xl border border-border p-3">
+          <summary className="ui-hover-accent cursor-pointer text-sm font-medium text-muted">
             Archived ({archived.length})
           </summary>
           <div className="mt-3 flex flex-col gap-2">
@@ -209,7 +211,7 @@ export default function GoalList({
               ) : (
                 <div
                   key={goal.id}
-                  className="flex flex-col gap-2 rounded-xl border border-border p-3 sm:flex-row sm:items-center sm:justify-between"
+                  className="ui-hover-edge flex flex-col gap-2 rounded-xl border border-border p-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
                     <p className="font-medium">{goal.title}</p>
@@ -222,12 +224,14 @@ export default function GoalList({
                       <button
                         type="button"
                         onClick={() => setEditingId(goal.id)}
+                        className="ui-hover-accent"
                       >
                         Edit
                       </button>
                       <button
                         type="button"
                         onClick={() => handleUnarchive(goal)}
+                        className="ui-hover-accent"
                       >
                         Restore
                       </button>

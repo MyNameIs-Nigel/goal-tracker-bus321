@@ -123,6 +123,8 @@ function GoalRow({
     </>
   );
 
+  // `ui-hover-surface` only when the row is a button: a fill promises a
+  // click, and a reader's row cannot deliver one (HOVER-04).
   const rowClassName =
     "flex min-h-12 w-full items-center gap-3 rounded-xl border border-border p-3 text-left";
 
@@ -136,19 +138,19 @@ function GoalRow({
           type="button"
           onClick={handleToggle}
           disabled={pending}
-          className={`${rowClassName} cursor-pointer`}
+          className={`${rowClassName} ui-hover-surface cursor-pointer`}
         >
           {content}
         </button>
       ) : (
-        <div className={rowClassName}>{content}</div>
+        <div className={`${rowClassName} ui-hover-edge`}>{content}</div>
       )}
       {canRemoveException && (
         <button
           type="button"
           onClick={handleRemoveException}
           disabled={removePending}
-          className="self-start pl-3 text-xs font-medium text-muted underline"
+          className="ui-hover-accent self-start pl-3 text-xs font-medium text-muted underline"
         >
           Remove exception
         </button>
@@ -254,12 +256,14 @@ export default function DayView(props: DayPageData) {
             {formatWeekdayLong(props.date)}
           </h1>
           <nav className="flex items-center gap-3 text-sm font-medium text-muted">
-            <Link href={`/day/${prevDate}`}>
+            <Link href={`/day/${prevDate}`} className="ui-hover-accent">
               ← {formatMonthShort(prevDate)}
             </Link>
-            <Link href="/today">Today</Link>
+            <Link href="/today" className="ui-hover-accent">
+              Today
+            </Link>
             {nextDate && (
-              <Link href={`/day/${nextDate}`}>
+              <Link href={`/day/${nextDate}`} className="ui-hover-accent">
                 {formatMonthShort(nextDate)} →
               </Link>
             )}
@@ -284,7 +288,10 @@ export default function DayView(props: DayPageData) {
           {props.role === "owner" ? (
             <>
               No goals yet.{" "}
-              <Link href="/goals" className="font-medium text-accent">
+              <Link
+                href="/goals"
+                className="ui-hover-underline font-medium text-accent"
+              >
                 Add one
               </Link>
               .
@@ -375,7 +382,7 @@ export default function DayView(props: DayPageData) {
           <button
             type="button"
             onClick={() => setExceptionDialogOpen(true)}
-            className="self-start rounded-full border border-border px-4 py-2 text-sm font-medium"
+            className="ui-hover-surface self-start rounded-full border border-border px-4 py-2 text-sm font-medium"
           >
             Mark an exception
           </button>

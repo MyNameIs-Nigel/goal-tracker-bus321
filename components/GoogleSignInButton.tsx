@@ -19,7 +19,7 @@ export default function GoogleSignInButton() {
           errorCallbackURL: "/?error=1",
         });
       }}
-      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent text-base font-medium text-white transition-opacity disabled:opacity-60"
+      className="ui-hover-solid flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent text-base font-medium text-white disabled:opacity-60"
     >
       {pending ? (
         <span
