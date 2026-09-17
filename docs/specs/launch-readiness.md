@@ -33,6 +33,11 @@
 - **When** the owner changes that person's role
 - **Then** the next page request and Server Action use the new role; no session result is shared between requests or people
 
+### LAUNCH-06 Profile panel never covers navigation
+- **Given** the phone header, where the primary navigation wraps onto its own row
+- **When** the profile panel is open
+- **Then** the panel opens below the whole header, every primary navigation link stays visible, and one tap on a link navigates
+
 ## Performance and verification
 
 Nigel's 2026-09-17 screenshot shows 2.14s waiting for the server and only
