@@ -40,7 +40,6 @@ export default function UserMenu({
   return (
     <div
       ref={root}
-      className="relative"
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
           setOpen(false);
@@ -72,7 +71,7 @@ export default function UserMenu({
           id={panelId}
           role="region"
           aria-label="Your profile"
-          className="absolute right-0 z-10 mt-2 w-64 rounded-xl border border-border bg-background p-3 shadow-lg"
+          className="absolute right-5 top-full z-10 mb-3 w-64 rounded-xl border border-border bg-background p-3 shadow-lg sm:right-6"
         >
           <p className="truncate text-sm font-medium">{name}</p>
           <p className="truncate text-xs text-muted">{email}</p>

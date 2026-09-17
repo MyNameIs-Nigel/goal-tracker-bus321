@@ -14,7 +14,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         Skip to content
       </a>
       <header className="border-b border-border">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-3 sm:px-6">
+        <div className="relative mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-3 sm:px-6">
           <span className="text-sm font-semibold tracking-tight">
             BUS 321 Goal Tracker
           </span>
