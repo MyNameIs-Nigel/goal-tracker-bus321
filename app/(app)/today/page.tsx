@@ -1,11 +1,12 @@
+import DayView from "@/components/DayView";
 import { today } from "@/lib/clock";
+import { loadDayPage } from "@/lib/day-page";
+import { requireUser } from "@/lib/dal";
 
-export default function TodayPage() {
-  return (
-    <div className="flex flex-col gap-2">
-      <h1 className="text-2xl font-semibold tracking-tight">Today</h1>
-      <p className="text-muted">{today()}</p>
-      <p className="text-muted">Goals and daily tracking arrive in Phase 2.</p>
-    </div>
-  );
+/** `/today` is `/day/<today>` (docs/specs/daily-tracking.md). */
+export default async function TodayPage() {
+  const user = await requireUser();
+  const data = await loadDayPage(today(), user.role);
+
+  return <DayView {...data} />;
 }
