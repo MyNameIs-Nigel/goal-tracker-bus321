@@ -119,7 +119,9 @@ test("CV-06 empty documents show a placeholder to the owner and 'Not written yet
     page.getByText("Write your accountability contract…"),
   ).toBeVisible();
   await expect(page.getByText("Write who you want to become…")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Edit" })).toHaveCount(2);
+  await expect(
+    page.getByRole("button", { name: "Edit", exact: true }),
+  ).toHaveCount(2);
 
   await signInAs("partner");
   await page.goto("/contract");
@@ -179,7 +181,9 @@ test("CV-09 non-owners see no Edit or Edit dates controls", async ({
   for (const role of ["partner", "viewer"] as const) {
     await signInAs(role);
     await page.goto("/contract");
-    await expect(page.getByRole("button", { name: "Edit" })).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: "Edit", exact: true }),
+    ).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Edit dates" })).toHaveCount(
       0,
     );
@@ -194,6 +198,8 @@ test("CV-10 headings, lists and links render like a document", async ({
   await signInAs("owner");
   await page.goto("/contract");
 
+  // The fixture auto-accepts dialogs with no value; the Link prompt needs a URL.
+  page.removeAllListeners("dialog");
   page.on("dialog", (dialog) => dialog.accept("https://ok.example"));
 
   const contract = section(page, "Accountability contract");

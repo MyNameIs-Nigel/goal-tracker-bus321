@@ -15,7 +15,7 @@ Owner: edit both documents and the dates. Everyone: read.
 
 ## Phased test coverage
 
-CV-03 and CV-04 are about what the Server Action accepts, so they are unit tests (`lib/sanitize.test.ts`, `lib/actions/documents.test.ts`); the "rendered page contains no `<script>`" half of CV-03 follows from rendering only what that action stored. The rest are E2E in `e2e/contract-and-vision.spec.ts`, with the edit/cancel state machine also covered as a component test (`components/DocumentSection.test.tsx`, editor mocked — Tiptap doesn't run in jsdom).
+CV-03 and CV-04 are about what the Server Action accepts, so they are unit tests (`lib/sanitize.test.ts`, `lib/actions/documents.test.ts`); the "rendered page contains no `<script>`" half of CV-03 follows from rendering only what that action stored. The rest are E2E in `e2e/contract-and-vision.spec.ts`, with the edit/cancel state machine also covered as a component test (`components/ContractView.test.tsx`, editor mocked — Tiptap doesn't run in jsdom).
 
 ## Action interface
 
