@@ -82,6 +82,16 @@ export function formatMonthShort(date: string): string {
   });
 }
 
+/** "Sep 19, 2026" (CV-01's date range). */
+export function formatMonthShortYear(date: string): string {
+  return toUtc(date).toLocaleDateString("en-US", {
+    timeZone: "UTC",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 /** "Wednesday, Sep 27" (DT-02's "due <date>"). */
 export function formatWeekdayShort(date: string): string {
   return toUtc(date).toLocaleDateString("en-US", {

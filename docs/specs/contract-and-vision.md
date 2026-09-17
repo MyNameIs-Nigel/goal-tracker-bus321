@@ -13,6 +13,24 @@ The assignment's two written pieces — *who I want to become* and the *accounta
 
 Owner: edit both documents and the dates. Everyone: read.
 
+## Phased test coverage
+
+CV-03 and CV-04 are about what the Server Action accepts, so they are unit tests (`lib/sanitize.test.ts`, `lib/actions/documents.test.ts`); the "rendered page contains no `<script>`" half of CV-03 follows from rendering only what that action stored. The rest are E2E in `e2e/contract-and-vision.spec.ts`, with the edit/cancel state machine also covered as a component test (`components/ContractView.test.tsx`, editor mocked — Tiptap doesn't run in jsdom).
+
+## Action interface
+
+Two Server Actions in `lib/actions/documents.ts`, both owner-only (`Forbidden` otherwise, ROLE-03):
+
+- `saveDocument(key, html)` — `key` is `vision` or `contract`; `html` is what the editor emitted. The action sanitizes it (`lib/sanitize.ts`, implemented with `sanitize-html`), rejects the result if it exceeds 20,000 characters (CV-04), stores it with `updated_at = now()` and `updated_by = the owner`, and returns the stored HTML plus the "Last updated" line's inputs.
+- `saveContractDates(start, end)` — each is `YYYY-MM-DD` or empty (→ `NULL`); end before start is rejected (CV-07). Writes `settings` row 1.
+
+## Formats
+
+- Date range under the title: **"Sep 19 – Dec 18, 2026"** when both dates share a year; **"Sep 19, 2026 – Jan 18, 2027"** otherwise; **"Starts Sep 19, 2026"** with only a start; **"No contract dates yet"** with neither.
+- Placeholders (owner, empty document): vision **"Write who you want to become…"**, contract **"Write your accountability contract…"**. Everyone else sees **"Not written yet."**
+- **"Last updated Sep 18 by Nigel"** appears only once a document has been saved (`updated_by` set).
+- **"Accountability partners: Alice, Bob"** — partners by name; **"Accountability partners: none yet"** when there are none.
+
 ## Scenarios
 
 ### CV-01 The page shows the two documents, the dates, and the partners
@@ -23,7 +41,7 @@ Owner: edit both documents and the dates. Everyone: read.
 ### CV-02 Owner edits a document
 - **Given** the owner on `/contract`
 - **When** they press **"Edit"** on the contract section
-- **Then** an editor replaces the rendered text with a toolbar of **Bold · Italic · Heading · Bullet list · Numbered list · Link** and **"Save"** / **"Cancel"** buttons
+- **Then** an editor replaces the rendered text with a toolbar of **Bold · Italic · Heading · Bullet list · Numbered list · Link** (Tiptap StarterKit; "Heading" toggles an `h2`; "Link" prompts for a URL) and **"Save"** / **"Cancel"** buttons
 - **And when** they type, apply bold, and press Save
 - **Then** the rendered section shows the new content and `documents.contract.updated_at` advances
 
