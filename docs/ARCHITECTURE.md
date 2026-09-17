@@ -152,3 +152,7 @@ GitHub PR   ──open──▶ Actions: lint · typecheck · unit · e2e (postg
 ```
 
 Details in [CI_CD.md](CI_CD.md).
+
+## Phase 4 response time
+
+Functions are configured in Portland (`pdx1`), matching the existing Neon database (both verified in Vercel settings 2026-09-17). Previously functions ran in Washington (`iad1`). Session reads are memoized with React `cache` for a single server render only; roles and sessions are checked again on every request. Authenticated routes stream a loading state while data loads. No private data is cached across requests. See [launch readiness](specs/launch-readiness.md).

@@ -16,6 +16,7 @@ One file per feature. Each is the contract that tests encode and code satisfies.
 | [site-identity.md](site-identity.md) | `ID` | 4 | Approved |
 | [hover-feedback.md](hover-feedback.md) | `HOVER` | 4 | Approved |
 | [appearance.md](appearance.md) | `THEME` | 4 | Approved |
+| [launch-readiness.md](launch-readiness.md) | `LAUNCH` | 4 | Approved |
 | [owner-reminders.md](owner-reminders.md) | `REM` | 5 | Planned — scenarios not yet written |
 
 *Approved* means Nigel has seen the decisions behind it (ADR-0001/0002) and Claude may implement it without asking. Refinements discovered during implementation are made in the same PR, docs commit first, and called out in the PR body.

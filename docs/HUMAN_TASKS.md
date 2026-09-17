@@ -293,6 +293,8 @@ Either answer is safe; v1 migrations are additive-only.
 
 ## H10. Turn off Neon preview branching
 
+> **2026-09-17 verification:** Nigel had disabled Preview branch creation. The connection still included Preview, so Codex changed its environment scope to Production only and verified the saved Connections table. Recheck variable scopes and the next Preview build when work resumes.
+
 **Why you:** it's a toggle inside the Neon integration's dashboard UI and per-environment variable scoping in Vercel's project settings — both require your account, and the Vercel connector exposes no environment-variable tool (same limitation as [H9](#h9-turn-on-branch-protection-and-set-the-preview-env-vars)).
 
 **Why now:** on 2026-09-17, PR [#11](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/11) — a docs-only change — failed to deploy twice with a Vercel error that turned out to be **"Branch limit reached. Upgrade your plan or delete unused branches."** Neon's Free tier caps branches, and a branch-per-preview-deployment setup quietly used them all up. See [ADR-0004](adr/0004-preview-has-no-database.md) for the full decision: Preview no longer gets a database at all; only Production does.
