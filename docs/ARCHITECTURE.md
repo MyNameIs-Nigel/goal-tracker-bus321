@@ -80,7 +80,7 @@ docs/                        this
 
 ```
 requireUser()      → session or redirect("/")
-requirePartner()   → session with role ∈ {partner, owner} or throw Forbidden
+requirePartner()   → session with role = partner or throw Forbidden (the owner is not a partner — the check-in is the partner's own job)
 requireOwner()     → session with role = owner or notFound()
 ```
 
