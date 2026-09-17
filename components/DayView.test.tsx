@@ -319,3 +319,18 @@ test("DT-16 the Accountability partners section renders for any role", () => {
     unmount();
   }
 });
+
+test("HOVER-04 the goal row invites the pointer only when it can be checked off", () => {
+  const { unmount } = render(<DayView {...baseProps()} />);
+  expect(screen.getByRole("button", { name: /Read 20 pages/ })).toHaveClass(
+    "ui-hover-surface",
+  );
+  unmount();
+
+  // A viewer's row is not a button; a fill would promise a click it can't
+  // deliver, so it gets the border-only accent instead.
+  render(<DayView {...baseProps({ role: "viewer" })} />);
+  const row = screen.getByText("Read 20 pages").closest("div.rounded-xl");
+  expect(row).toHaveClass("ui-hover-edge");
+  expect(row).not.toHaveClass("ui-hover-surface");
+});
