@@ -31,7 +31,7 @@ export default function UserMenu({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="User menu"
-        className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-accent text-sm font-medium text-white"
+        className="ui-hover-outline flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-accent text-sm font-medium text-white"
       >
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element -- avatar comes from Google, not a local/optimizable asset
@@ -55,7 +55,7 @@ export default function UserMenu({
               router.push("/");
               router.refresh();
             }}
-            className="mt-3 w-full rounded-full border border-border px-3 py-1.5 text-left text-sm font-medium"
+            className="ui-hover-surface mt-3 w-full rounded-full border border-border px-3 py-1.5 text-left text-sm font-medium"
           >
             Sign out
           </button>

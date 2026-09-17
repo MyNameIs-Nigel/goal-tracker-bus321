@@ -62,7 +62,7 @@ export default function PeopleList({
       {rows.map((person) => (
         <div
           key={person.id}
-          className="flex items-center gap-3 rounded-xl border border-border p-3"
+          className="ui-hover-edge flex items-center gap-3 rounded-xl border border-border p-3"
         >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent text-sm font-medium text-white">
             {person.image ? (
@@ -96,7 +96,7 @@ export default function PeopleList({
                   event.target.value as "partner" | "viewer",
                 )
               }
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-sm"
+              className="ui-hover-surface rounded-full border border-border bg-background px-3 py-1.5 text-sm"
             >
               <option value="viewer">Viewer</option>
               <option value="partner">Partner</option>
@@ -112,7 +112,7 @@ export default function PeopleList({
             <button
               type="button"
               onClick={copyLink}
-              className="rounded-full border border-border px-3 py-1.5 text-sm font-medium"
+              className="ui-hover-surface rounded-full border border-border px-3 py-1.5 text-sm font-medium"
             >
               Copy link
             </button>

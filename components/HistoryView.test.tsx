@@ -217,3 +217,17 @@ test("HIST-06 no partners", () => {
     "No partners yet.",
   );
 });
+
+test("HOVER-06 the month summary boxes take the border-only accent", () => {
+  const { container } = render(<HistoryView data={september()} />);
+  for (const id of [
+    "failures-heading",
+    "exceptions-heading",
+    "completion-heading",
+  ]) {
+    const box = container.querySelector(`#${id}`)?.closest("section");
+    expect(box, id).toHaveClass("ui-hover-edge");
+    // Nothing here is clickable, so it must never gain a fill.
+    expect(box, id).not.toHaveClass("ui-hover-surface");
+  }
+});

@@ -128,7 +128,7 @@ A session with normal network access (or Nigel himself) should complete the thre
 
 **Depends on humans:** [H6](HUMAN_TASKS.md#h6-point-bus321nigel-smithdev-at-vercel) ✅ (DNS, done 2026-09-16), [H7](HUMAN_TASKS.md#h7-write-your-content-in-the-app) (content), [H8](HUMAN_TASKS.md#h8-share-the-link-with-your-partners) (share).
 
-**Code:** empty/loading/error states audit; accessibility pass (labels, focus order, contrast, hit targets ≥ 44px); page metadata and favicon; `BETTER_AUTH_URL` switched to the custom domain; production smoke run of every spec's happy path with the built-in browser at phone and desktop widths.
+**Code:** empty/loading/error states audit; accessibility pass (labels, focus order, contrast, hit targets ≥ 44px); page metadata and favicon; hover & focus accents — [hover-feedback.md](specs/hover-feedback.md), **landed early at Nigel's request, ahead of the rest of the phase**; `BETTER_AUTH_URL` switched to the custom domain; production smoke run of every spec's happy path with the built-in browser at phone and desktop widths.
 
 **Exit criteria:**
 - [ ] `https://bus321.nigel-smith.dev` loads over HTTPS; the `*.vercel.app` URL redirects to it.

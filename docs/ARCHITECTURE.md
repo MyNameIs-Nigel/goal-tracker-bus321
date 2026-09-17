@@ -125,6 +125,12 @@ matching `.nvmrc` and `engines.node`.
 
 `.env.example` is committed with every name and a comment; real values live in Vercel and in the git-ignored `.env.local`. Google provider registration is conditional on its two vars being present, so preview and CI builds don't need them. Local `.env.local` never contains Neon credentials — `vercel env pull` is not used for the database ([ADR-0003](adr/0003-public-repo-and-local-database.md)).
 
+## Interaction accents
+
+Hover and keyboard focus are one shared vocabulary, not per-component guesswork: six classes in `app/globals.css` (`ui-hover-accent`, `ui-hover-underline`, `ui-hover-solid`, `ui-hover-surface`, `ui-hover-edge`, `ui-hover-outline`), each fading the one green accent in over 150ms. What each is for, and the `--accent-hover` / `--accent-soft` tokens they use, is in [specs/hover-feedback.md](specs/hover-feedback.md).
+
+They are written **unlayered**, next to `.doc`, rather than in `@layer components`. A hover rule has to beat the Tailwind utility that set the element's resting colour (`bg-accent`, `border-border`), and Tailwind v4's `utilities` layer wins over `components` no matter how specific the selector is; unlayered rules outrank every layer. The rules are guarded by `@media (hover: hover)` so a tap on a phone never leaves a control stuck highlighted, by `:not(:disabled)` so dead controls never look live, and by `prefers-reduced-motion` so the accent still appears but does not animate.
+
 ## Rich text
 
 Tiptap (ProseMirror, StarterKit) with a deliberately small toolbar: Bold, Italic, Heading, Bullet list, Numbered list, Link. The editor emits HTML; the Server Action passes it through `lib/sanitize.ts` (a thin wrapper over `sanitize-html`; allowlist: `p h2 h3 strong em ul ol li a[href^=http(s)] br blockquote`; links get `rel="noopener noreferrer" target="_blank"`; every other tag, attribute and URL scheme is dropped), enforces a 20,000-character limit, and stores it. Rendering is the stored HTML — already safe by construction, sanitized again on the way out as belt and braces. The editor is a client component (`components/RichTextEditor.tsx`) rendered only in edit mode, so readers never download it.

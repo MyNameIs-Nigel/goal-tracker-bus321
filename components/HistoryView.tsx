@@ -51,12 +51,18 @@ export default function HistoryView({ data }: { data: HistoryData }) {
           className="flex items-center gap-3 text-sm font-medium text-muted"
         >
           {nav.prev && (
-            <Link href={`/history?month=${nav.prev}`}>
+            <Link
+              href={`/history?month=${nav.prev}`}
+              className="ui-hover-accent"
+            >
               ← {formatMonthName(`${nav.prev}-01`)}
             </Link>
           )}
           {nav.next && (
-            <Link href={`/history?month=${nav.next}`}>
+            <Link
+              href={`/history?month=${nav.next}`}
+              className="ui-hover-accent"
+            >
               {formatMonthName(`${nav.next}-01`)} →
             </Link>
           )}
@@ -76,7 +82,7 @@ export default function HistoryView({ data }: { data: HistoryData }) {
                 key={cell.date}
                 href={`/day/${cell.date}`}
                 aria-label={cell.label}
-                className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg text-sm ${
+                className={`ui-hover-outline flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg text-sm ${
                   cell.isToday ? "ring-2 ring-accent" : ""
                 } ${cell.status === "none" ? "text-muted" : ""}`}
               >
@@ -110,7 +116,7 @@ export default function HistoryView({ data }: { data: HistoryData }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <section
           aria-labelledby="failures-heading"
-          className="flex flex-col gap-2 rounded-xl border border-border p-4"
+          className="ui-hover-edge flex flex-col gap-2 rounded-xl border border-border p-4"
         >
           <h2 id="failures-heading" className="font-semibold">
             {plural(data.failures.length, "failure")}
@@ -125,7 +131,7 @@ export default function HistoryView({ data }: { data: HistoryData }) {
         </section>
         <section
           aria-labelledby="exceptions-heading"
-          className="flex flex-col gap-2 rounded-xl border border-border p-4"
+          className="ui-hover-edge flex flex-col gap-2 rounded-xl border border-border p-4"
         >
           <h2 id="exceptions-heading" className="font-semibold">
             {plural(data.exceptions.length, "exception")}
@@ -140,7 +146,7 @@ export default function HistoryView({ data }: { data: HistoryData }) {
         </section>
         <section
           aria-labelledby="completion-heading"
-          className="flex flex-col gap-1 rounded-xl border border-border p-4 sm:col-span-2"
+          className="ui-hover-edge flex flex-col gap-1 rounded-xl border border-border p-4 sm:col-span-2"
         >
           <h2 id="completion-heading" className="font-semibold">
             {data.completion
@@ -179,7 +185,7 @@ export default function HistoryView({ data }: { data: HistoryData }) {
               {data.periods.map((row) => (
                 <tr
                   key={`${row.title}-${row.period}`}
-                  className="border-t border-border"
+                  className="ui-hover-edge border-t border-border"
                 >
                   <td className="py-2 pr-2">{row.title}</td>
                   <td className="py-2 pr-2 text-muted">{row.period}</td>
