@@ -149,7 +149,7 @@ test("HIST-05 weekly and monthly goals are tabled with a status", async ({
   ).toContainText("Not counting");
 });
 
-test("HIST-06 / PCI-09 partners show N of M days and a strip", async ({
+test("PCI-09 partners show N of M days and a strip on /history", async ({
   page,
   signInAs,
 }) => {

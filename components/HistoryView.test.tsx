@@ -29,13 +29,16 @@ const flu = {
   reason: "Flu",
 };
 
-function september(today = "2026-09-30") {
+function september(
+  today = "2026-09-30",
+  doneDays = [19, 22, 23, 24, 25, 26, 27, 28, 29],
+) {
   return buildHistoryData({
     month: "2026-09",
     today,
     goals: [readGoal, gymGoal],
     contract,
-    completions: [19, 22, 23, 24, 25, 26, 27, 28, 29].map((day) => ({
+    completions: doneDays.map((day) => ({
       goalId: "d3",
       periodStart: `2026-09-${day}`,
     })),
@@ -54,7 +57,7 @@ function september(today = "2026-09-30") {
 }
 
 test("HIST-01 the calendar shows each day with an accessible status and a legend", () => {
-  render(<HistoryView data={september("2026-09-23")} />);
+  render(<HistoryView data={september("2026-09-23", [19, 22])} />);
   expect(
     screen.getByRole("heading", { name: "September 2026" }),
   ).toBeInTheDocument();
@@ -179,7 +182,7 @@ test("HIST-05 the table is absent with no weekly or monthly goals", () => {
   ).not.toBeInTheDocument();
 });
 
-test("HIST-06 / PCI-09 the Partners block shows N of M days and a strip", () => {
+test("PCI-09 the Partners block shows N of M days and a strip", () => {
   render(<HistoryView data={september("2026-09-15")} />);
   const section = screen.getByRole("region", { name: "Partners" });
   expect(section).toHaveTextContent("Alice — 3 of 15 days");

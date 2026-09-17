@@ -4,7 +4,7 @@
  */
 import "server-only";
 
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, gte, lte } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { partnerCheckins, user } from "@/db/schema";
@@ -49,4 +49,22 @@ export async function listCheckinsOn(date: string): Promise<CheckinRecord[]> {
     .from(partnerCheckins)
     .where(eq(partnerCheckins.date, date));
   return rows.map(toCheckinRecord);
+}
+
+/** Every check-in from `start` to `end` inclusive, with the user's name (HIST-06). */
+export async function listCheckinsBetween(
+  start: string,
+  end: string,
+): Promise<{ userId: string; date: string; userName: string }[]> {
+  return db
+    .select({
+      userId: partnerCheckins.userId,
+      date: partnerCheckins.date,
+      userName: user.name,
+    })
+    .from(partnerCheckins)
+    .innerJoin(user, eq(partnerCheckins.userId, user.id))
+    .where(
+      and(gte(partnerCheckins.date, start), lte(partnerCheckins.date, end)),
+    );
 }

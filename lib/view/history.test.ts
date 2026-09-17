@@ -257,7 +257,7 @@ test("HIST-05 an archived weekly goal only lists the periods it was alive for", 
   ]);
 });
 
-test("HIST-06 / PCI-09 partners: N of M elapsed days and a day strip", () => {
+test("HIST-06 partners: N of M elapsed days and a day strip", () => {
   const data = buildHistoryData({
     month: "2026-09",
     today: "2026-09-15",
