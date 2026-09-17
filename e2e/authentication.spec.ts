@@ -109,7 +109,13 @@ test("AUTH-12 the header shows who you are", async ({ page, signInAs }) => {
   await page.goto("/today");
 
   await page.getByRole("button", { name: "User menu" }).click();
-  await expect(page.getByRole("menu")).toContainText("Test Viewer");
-  await expect(page.getByRole("menu")).toContainText("viewer@e2e.local");
-  await expect(page.getByRole("menu")).toContainText("Viewer");
+  await expect(
+    page.getByRole("region", { name: "Your profile" }),
+  ).toContainText("Test Viewer");
+  await expect(
+    page.getByRole("region", { name: "Your profile" }),
+  ).toContainText("viewer@e2e.local");
+  await expect(
+    page.getByRole("region", { name: "Your profile" }),
+  ).toContainText("Viewer");
 });

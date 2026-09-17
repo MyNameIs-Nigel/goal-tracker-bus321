@@ -1,7 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+
+import ThemeSelector from "./ThemeSelector";
 
 import { signOut } from "@/lib/auth-client";
 import type { Role, SessionUser } from "@/lib/dal";
@@ -22,16 +24,41 @@ export default function UserMenu({
 }: Pick<SessionUser, "name" | "email" | "image" | "role">) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const panelId = useId();
+  const root = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function dismiss(event: PointerEvent) {
+      if (!root.current?.contains(event.target as Node)) setOpen(false);
+    }
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, [open]);
 
   return (
-    <div className="relative">
+    <div
+      ref={root}
+      className="relative"
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && open) {
+          setOpen(false);
+          trigger.current?.focus();
+        }
+      }}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+      }}
+    >
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        aria-haspopup="menu"
+        ref={trigger}
+        aria-controls={panelId}
         aria-expanded={open}
         aria-label="User menu"
-        className="ui-hover-outline flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-accent text-sm font-medium text-white"
+        className="ui-hover-outline flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-accent text-sm font-medium text-white"
       >
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element -- avatar comes from Google, not a local/optimizable asset
@@ -42,12 +69,15 @@ export default function UserMenu({
       </button>
       {open && (
         <div
-          role="menu"
-          className="absolute right-0 z-10 mt-2 w-56 rounded-xl border border-border bg-background p-3 shadow-lg"
+          id={panelId}
+          role="region"
+          aria-label="Your profile"
+          className="absolute right-0 z-10 mt-2 w-64 rounded-xl border border-border bg-background p-3 shadow-lg"
         >
           <p className="truncate text-sm font-medium">{name}</p>
           <p className="truncate text-xs text-muted">{email}</p>
           <p className="mt-1 text-xs text-muted">{ROLE_LABELS[role]}</p>
+          <ThemeSelector />
           <button
             type="button"
             onClick={async () => {
@@ -55,7 +85,7 @@ export default function UserMenu({
               router.push("/");
               router.refresh();
             }}
-            className="ui-hover-surface mt-3 w-full rounded-full border border-border px-3 py-1.5 text-left text-sm font-medium"
+            className="ui-hover-surface mt-3 min-h-11 w-full rounded-full border border-border px-3 py-1.5 text-left text-sm font-medium"
           >
             Sign out
           </button>
