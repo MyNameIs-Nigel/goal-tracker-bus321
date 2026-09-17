@@ -111,7 +111,7 @@ export default function GoalForm({
               key={value}
               className={`cursor-pointer rounded-full border border-border px-3 py-1.5 text-sm ${
                 cadence === value
-                  ? "ui-hover-solid bg-accent text-white"
+                  ? "ui-hover-solid bg-accent text-on-accent"
                   : "ui-hover-surface"
               } ${cadenceLocked ? "cursor-not-allowed opacity-60" : ""}`}
             >
@@ -159,7 +159,7 @@ export default function GoalForm({
         <button
           type="submit"
           disabled={pending}
-          className="ui-hover-solid rounded-full bg-accent px-4 py-2 text-sm font-medium text-white"
+          className="ui-hover-solid rounded-full bg-accent px-4 py-2 text-sm font-medium text-on-accent"
         >
           Save
         </button>

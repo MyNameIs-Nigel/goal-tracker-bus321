@@ -6,6 +6,7 @@
   --foreground: #14181a;
   --muted: #5c6a70;
   --accent: #2f7d5a;
+  --on-accent: #ffffff;
   --accent-hover: #26684a;
   --accent-soft: rgb(47 125 90 / 8%);
   --border: #e3e8e6;
@@ -16,6 +17,7 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
   --color-border: var(--border);
@@ -30,6 +32,7 @@
     --foreground: #eef2f0;
     --muted: #9aa8ac;
     --accent: #5fb98c;
+    --on-accent: #0d1012;
     --accent-hover: #7ac9a0;
     --accent-soft: rgb(95 185 140 / 14%);
     --border: #232a2c;
@@ -42,6 +45,7 @@
   --foreground: #eef2f0;
   --muted: #9aa8ac;
   --accent: #5fb98c;
+  --on-accent: #0d1012;
   --accent-hover: #7ac9a0;
   --accent-soft: rgb(95 185 140 / 14%);
   --border: #232a2c;
@@ -204,4 +208,33 @@ body {
   border-left: 3px solid var(--border);
   padding-left: 1rem;
   color: var(--muted);
+}
+
+/* Launch accessibility: usable touch targets and an obvious keyboard path. */
+button,
+select,
+nav a {
+  min-height: 44px;
+  min-width: 44px;
+}
+nav a {
+  display: inline-flex;
+  align-items: center;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: -5rem;
+  z-index: 50;
+  border-radius: 999px;
+  padding: 0.75rem 1rem;
+  background: var(--foreground);
+  color: var(--background);
+}
+.skip-link:focus {
+  top: 1rem;
 }

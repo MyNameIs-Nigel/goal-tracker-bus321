@@ -58,7 +58,7 @@ export default function UserMenu({
         aria-controls={panelId}
         aria-expanded={open}
         aria-label="User menu"
-        className="ui-hover-outline flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-accent text-sm font-medium text-white"
+        className="ui-hover-outline flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-accent text-sm font-medium text-on-accent"
       >
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element -- avatar comes from Google, not a local/optimizable asset

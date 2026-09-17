@@ -53,7 +53,15 @@ export default function OpenGraphImage() {
               width: 112,
             }}
           >
-            ✓
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none">
+              <path
+                d="m5 12 4 4L19 6"
+                stroke="#2f7d5a"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
           <div
             style={{

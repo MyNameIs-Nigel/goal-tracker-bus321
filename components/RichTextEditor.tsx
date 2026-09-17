@@ -111,7 +111,7 @@ function Toolbar({ editor }: { editor: Editor | null }) {
           aria-pressed={item.active}
           className={`rounded-lg px-2.5 py-1.5 text-sm font-medium ${
             item.active
-              ? "ui-hover-solid bg-accent text-white"
+              ? "ui-hover-solid bg-accent text-on-accent"
               : "ui-hover-surface text-foreground/80"
           }`}
         >

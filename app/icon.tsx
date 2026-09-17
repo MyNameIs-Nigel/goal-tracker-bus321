@@ -21,7 +21,15 @@ export default function Icon() {
         width: "100%",
       }}
     >
-      ✓
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path
+          d="m5 12 4 4L19 6"
+          stroke="#ffffff"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     </div>,
     size,
   );
