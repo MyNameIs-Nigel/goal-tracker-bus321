@@ -59,7 +59,7 @@ If 9/19 is at risk, this is what must be live for the contract to start, in prio
 - [x] A PR with a one-line change shows all checks green: `lint`, `typecheck`, `unit`, `e2e`, `build`, `flow-check`, `pr-title`, plus the Vercel preview check. — [#1](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/1), all nine green on the first run.
 - [x] The preview URL renders the placeholder page.
 - [x] Merging deploys to `https://goal-tracker-bus321.vercel.app`.
-- [x] Confirmed whether Neon created a preview branch for the PR; result recorded in `ARCHITECTURE.md § Environments`. — Nigel checked the Neon console in [H9](HUMAN_TASKS.md#h9-turn-on-branch-protection-and-set-the-preview-env-vars): **branching is on**, so each preview deployment gets its own database branch.
+- [x] Confirmed whether Neon created a preview branch for the PR; result recorded in `ARCHITECTURE.md § Environments`. — Nigel checked the Neon console in [H9](HUMAN_TASKS.md#h9-turn-on-branch-protection-and-set-the-preview-env-vars): **branching is on**, so each preview deployment gets its own database branch. *(Turned back off in Phase 2 after hitting Neon's Free-tier branch limit — see [H10](HUMAN_TASKS.md#h10-turn-off-neon-preview-branching) and [ADR-0004](adr/0004-preview-has-no-database.md); Preview now has no database at all.)*
 - [x] Dependabot opened (or is scheduled to open) its first PR and it is auto-labeled `skip-flow-check`. — it ran on the merge and opened two, grouped exactly as configured: [#2](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/2) `minor-and-patch` and [#3](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/3) `major`, both labelled `skip-flow-check` and `dependencies`.
 - [x] `docs/PHASES.md` status updated.
 
@@ -91,7 +91,7 @@ A session with normal network access (or Nigel himself) should complete the thre
 
 **Goal:** Nigel can define goals and record each day; everyone can see the truth for any day.
 
-**Depends on humans:** none.
+**Depends on humans:** none to build. [H10](HUMAN_TASKS.md#h10-turn-off-neon-preview-branching) came up mid-phase (a Neon branch-limit failure on PR #11) and needs Nigel's dashboard access to fully clear, though it doesn't block merging — see [ADR-0004](adr/0004-preview-has-no-database.md).
 
 **Specs:** [goals](specs/goals.md), [daily-tracking](specs/daily-tracking.md), [exceptions](specs/exceptions.md).
 
