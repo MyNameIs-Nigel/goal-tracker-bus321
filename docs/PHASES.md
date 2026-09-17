@@ -10,7 +10,7 @@ The plan for taking this from a blank `create-next-app` to a live tracker at `ht
 |-------|------|--------|--------|
 | 0 | Foundation — tooling, CI/CD, Vercel | ✅ done 2026-09-16 (H9 ✅, Neon branching on) | Wed 9/16 |
 | 1 | Auth & roles | 🔄 code merged & deployed ([#6](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/6)); production sign-in verification needs Nigel (this sandbox's network can't reach `bus321.nigel-smith.dev`, and Claude never completes Google OAuth for him) | Wed 9/16 – Thu 9/17 |
-| 2 | Goals & daily tracking | 🔄 in progress (started 2026-09-16) | Thu 9/17 – Fri 9/18 |
+| 2 | Goals & daily tracking | 🔄 code merged & deployed ([#8](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/8), [#9](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/9), [#10](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/10)); production verification needs Nigel, same sandbox limitation as Phase 1 | Thu 9/17 – Fri 9/18 |
 | 3 | Partners, contract & vision, history | ☐ not started | Fri 9/18 – Sat 9/19 |
 | 4 | Launch | ☐ not started | Sat 9/19 |
 | 5 | Owner reminders (post-launch) | ☐ not started | after launch |
@@ -98,9 +98,9 @@ A session with normal network access (or Nigel himself) should complete the thre
 **Code (outline):** pure `lib/` modules for periods, counting, status, failures, streak (heavily unit-tested against [DATA_MODEL.md](DATA_MODEL.md)); `/goals` with owner CRUD; `/today` and `/day/[date]`; exception dialog; server actions with role checks; mobile-first layout.
 
 **Exit criteria:**
-- [ ] Every scenario ID in the three specs has a passing test.
-- [ ] On production as owner: create three goals (one per cadence), check off today, open yesterday and check something off, mark an exception with a reason; streak and failure count match the rules by hand-calculation.
-- [ ] As viewer on a phone-width viewport: the same day is readable without horizontal scrolling and no write controls are visible.
+- [x] Every scenario ID in the three specs has a passing test — [#8](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/8), [#9](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/9), [#10](https://github.com/MyNameIs-Nigel/goal-tracker-bus321/pull/10), all checks green on each. `npm run trace` shows `goals.md` 12/12, `daily-tracking.md` 15/16 (DT-16 deferred to Phase 3 per its own "Phased test coverage" note, mirroring the Phase 1 pattern), `exceptions.md` 9/9.
+- [ ] On production as owner: create three goals (one per cadence), check off today, open yesterday and check something off, mark an exception with a reason; streak and failure count match the rules by hand-calculation. **Needs Nigel** — same reason as Phase 1's unchecked boxes: this sandbox has no Docker (so no local Postgres to run a dev server against) and its network egress can't reach either `bus321.nigel-smith.dev` or the `*.vercel.app` preview URLs. The equivalent flow — goals CRUD, check-off, editing a past day, exceptions, streak and failure math — is exercised end-to-end by `e2e/goals.spec.ts`, `e2e/daily-tracking.spec.ts`, and `e2e/exceptions.spec.ts` against a real `postgres:17` container in CI, and passed on the commits that are now on `main`.
+- [ ] As viewer on a phone-width viewport: the same day is readable without horizontal scrolling and no write controls are visible. Playwright's `mobile` project (`devices["Pixel 7"]`, `playwright.config.ts`) runs the full e2e suite in CI, including the viewer-sees-no-write-controls assertions in `daily-tracking.spec.ts` and `exceptions.spec.ts` — but that's emulated viewport width, not a real phone, and not on the production URL. **Needs Nigel** for the actual look on his own phone.
 
 ---
 
