@@ -5,6 +5,8 @@
   --foreground: #14181a;
   --muted: #5c6a70;
   --accent: #2f7d5a;
+  --accent-hover: #26684a;
+  --accent-soft: rgb(47 125 90 / 8%);
   --border: #e3e8e6;
 }
 
@@ -13,6 +15,8 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
   --color-border: var(--border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -24,6 +28,8 @@
     --foreground: #eef2f0;
     --muted: #9aa8ac;
     --accent: #5fb98c;
+    --accent-hover: #7ac9a0;
+    --accent-soft: rgb(95 185 140 / 14%);
     --border: #232a2c;
   }
 }
@@ -32,6 +38,99 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* ---------------------------------------------------------------------------
+   Hover & focus accents (docs/specs/hover-feedback.md).
+
+   One accent, one duration, six classes. Deliberately *unlayered*, like
+   `.doc` below: a hover rule has to beat the Tailwind utility that set the
+   element's resting colour (`bg-accent`, `border-border`), and Tailwind v4's
+   `utilities` layer outranks `components` however specific the selector is.
+   Unlayered rules outrank every layer, so this is the one place they work.
+   --------------------------------------------------------------------------- */
+
+.ui-hover-accent,
+.ui-hover-underline,
+.ui-hover-solid,
+.ui-hover-surface,
+.ui-hover-edge,
+.ui-hover-outline {
+  transition-property:
+    color, background-color, border-color, outline-color, text-decoration-color,
+    opacity;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+/* The outline exists at rest so its colour has something to fade from, and
+   because an outline never takes part in layout the cell can't shift. */
+.ui-hover-outline {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+/* `(hover: hover)` keeps a tapped control on a phone from sticking in the
+   accent; `:not(:disabled)` keeps a dead control from looking live. */
+@media (hover: hover) {
+  .ui-hover-accent:hover:not(:disabled) {
+    color: var(--accent);
+  }
+  .ui-hover-underline:hover:not(:disabled) {
+    color: var(--accent-hover);
+    text-decoration-line: underline;
+    text-underline-offset: 2px;
+  }
+  .ui-hover-solid:hover:not(:disabled) {
+    background-color: var(--accent-hover);
+  }
+  .ui-hover-surface:hover:not(:disabled) {
+    border-color: var(--accent);
+    background-color: var(--accent-soft);
+  }
+  .ui-hover-edge:hover:not(:disabled) {
+    border-color: var(--accent);
+  }
+  .ui-hover-outline:hover:not(:disabled) {
+    outline-color: var(--accent);
+  }
+}
+
+/* Keyboard parity (HOVER-09). `:has()` covers the controls whose focusable
+   element is inside the styled box — the cadence pills' hidden radios. */
+.ui-hover-accent:focus-visible,
+.ui-hover-accent:has(:focus-visible),
+.ui-hover-underline:focus-visible,
+.ui-hover-underline:has(:focus-visible) {
+  color: var(--accent);
+}
+.ui-hover-solid:focus-visible,
+.ui-hover-solid:has(:focus-visible) {
+  background-color: var(--accent-hover);
+}
+.ui-hover-surface:focus-visible,
+.ui-hover-surface:has(:focus-visible) {
+  border-color: var(--accent);
+  background-color: var(--accent-soft);
+}
+.ui-hover-edge:focus-visible,
+.ui-hover-edge:has(:focus-visible) {
+  border-color: var(--accent);
+}
+.ui-hover-outline:focus-visible,
+.ui-hover-outline:has(:focus-visible) {
+  outline-color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-hover-accent,
+  .ui-hover-underline,
+  .ui-hover-solid,
+  .ui-hover-surface,
+  .ui-hover-edge,
+  .ui-hover-outline {
+    transition-duration: 0.01ms;
+  }
 }
 
 /* Rendered documents and the editor body (docs/specs/contract-and-vision.md CV-10). */
@@ -72,6 +171,12 @@ body {
   color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 2px;
+  transition: color 150ms ease-out;
+}
+@media (hover: hover) {
+  .doc a:hover {
+    color: var(--accent-hover);
+  }
 }
 .doc blockquote {
   border-left: 3px solid var(--border);

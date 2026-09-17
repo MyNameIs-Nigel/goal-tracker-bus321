@@ -110,7 +110,9 @@ function Toolbar({ editor }: { editor: Editor | null }) {
           onClick={item.run}
           aria-pressed={item.active}
           className={`rounded-lg px-2.5 py-1.5 text-sm font-medium ${
-            item.active ? "bg-accent text-white" : "text-foreground/80"
+            item.active
+              ? "ui-hover-solid bg-accent text-white"
+              : "ui-hover-surface text-foreground/80"
           }`}
         >
           {item.name}

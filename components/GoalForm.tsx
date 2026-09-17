@@ -86,7 +86,7 @@ export default function GoalForm({
           id="goal-title"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          className="ui-hover-edge rounded-lg border border-border bg-background px-3 py-2 text-sm"
         />
       </div>
 
@@ -99,7 +99,7 @@ export default function GoalForm({
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           rows={2}
-          className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          className="ui-hover-edge rounded-lg border border-border bg-background px-3 py-2 text-sm"
         />
       </div>
 
@@ -110,7 +110,9 @@ export default function GoalForm({
             <label
               key={value}
               className={`cursor-pointer rounded-full border border-border px-3 py-1.5 text-sm ${
-                cadence === value ? "bg-accent text-white" : ""
+                cadence === value
+                  ? "ui-hover-solid bg-accent text-white"
+                  : "ui-hover-surface"
               } ${cadenceLocked ? "cursor-not-allowed opacity-60" : ""}`}
             >
               <input
@@ -143,7 +145,7 @@ export default function GoalForm({
           type="date"
           value={startsOn}
           onChange={(event) => setStartsOn(event.target.value)}
-          className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          className="ui-hover-edge rounded-lg border border-border bg-background px-3 py-2 text-sm"
         />
       </div>
 
@@ -157,14 +159,14 @@ export default function GoalForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white"
+          className="ui-hover-solid rounded-full bg-accent px-4 py-2 text-sm font-medium text-white"
         >
           Save
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-full border border-border px-4 py-2 text-sm font-medium"
+          className="ui-hover-surface rounded-full border border-border px-4 py-2 text-sm font-medium"
         >
           Cancel
         </button>

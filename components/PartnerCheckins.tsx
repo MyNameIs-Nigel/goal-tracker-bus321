@@ -83,7 +83,7 @@ function OwnRow({
           type="button"
           onClick={handleCheckIn}
           disabled={pending}
-          className="self-start rounded-full bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="ui-hover-solid self-start rounded-full bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
         >
           I checked today
         </button>
@@ -112,13 +112,13 @@ function OwnRow({
           setSaved(false);
         }}
         rows={2}
-        className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        className="ui-hover-edge rounded-lg border border-border bg-background px-3 py-2 text-sm"
       />
       <div className="flex items-center gap-3">
         <button
           type="submit"
           disabled={pending}
-          className="rounded-full border border-border px-4 py-2 text-sm font-medium disabled:opacity-60"
+          className="ui-hover-surface rounded-full border border-border px-4 py-2 text-sm font-medium disabled:opacity-60"
         >
           Save note
         </button>
@@ -180,7 +180,10 @@ export default function PartnerCheckins({
           {role === "owner" && (
             <>
               {" "}
-              <Link href="/people" className="font-medium text-accent">
+              <Link
+                href="/people"
+                className="ui-hover-underline font-medium text-accent"
+              >
                 Promote someone on the People page
               </Link>
             </>
@@ -195,7 +198,7 @@ export default function PartnerCheckins({
             return (
               <li
                 key={partner.id}
-                className="flex flex-col gap-2 rounded-xl border border-border p-3"
+                className="ui-hover-edge flex flex-col gap-2 rounded-xl border border-border p-3"
               >
                 <div className="flex items-center gap-3">
                   <Avatar name={partner.name} image={partner.image} />

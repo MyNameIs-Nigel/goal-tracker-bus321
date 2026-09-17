@@ -42,7 +42,7 @@ export default function TestSignInButtons() {
             type="button"
             disabled={pendingRole !== null}
             onClick={() => signInAs(role)}
-            className="flex-1 rounded-full border border-border px-3 py-2 text-sm font-medium disabled:opacity-60"
+            className="ui-hover-surface flex-1 rounded-full border border-border px-3 py-2 text-sm font-medium disabled:opacity-60"
           >
             {label}
           </button>
