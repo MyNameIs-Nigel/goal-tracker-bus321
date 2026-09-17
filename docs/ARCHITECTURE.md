@@ -127,7 +127,7 @@ matching `.nvmrc` and `engines.node`.
 
 ## Rich text
 
-Tiptap (ProseMirror) with a deliberately small toolbar: Bold, Italic, Heading, Bullet list, Numbered list, Link. The editor emits HTML; the Server Action passes it through `lib/sanitize.ts` (allowlist: `p h2 h3 strong em ul ol li a[href^=http(s)] br blockquote`; links get `rel="noopener noreferrer"`), enforces a 20,000-character limit, and stores it. Rendering is the stored HTML — already safe by construction, sanitized again on the way out as belt and braces.
+Tiptap (ProseMirror, StarterKit) with a deliberately small toolbar: Bold, Italic, Heading, Bullet list, Numbered list, Link. The editor emits HTML; the Server Action passes it through `lib/sanitize.ts` (a thin wrapper over `sanitize-html`; allowlist: `p h2 h3 strong em ul ol li a[href^=http(s)] br blockquote`; links get `rel="noopener noreferrer" target="_blank"`; every other tag, attribute and URL scheme is dropped), enforces a 20,000-character limit, and stores it. Rendering is the stored HTML — already safe by construction, sanitized again on the way out as belt and braces. The editor is a client component (`components/RichTextEditor.tsx`) rendered only in edit mode, so readers never download it.
 
 ## Security notes
 
