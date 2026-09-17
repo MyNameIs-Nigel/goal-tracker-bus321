@@ -39,6 +39,12 @@ function dateInZone(instant: Date): string {
   }).format(instant);
 }
 
+/** The current instant — pinned by `E2E_FIXED_NOW` in test mode. Only for
+ * timestamps the UI displays (a check-in's time); `today()` is the date. */
+export function now(): Date {
+  return currentInstant();
+}
+
 /** Today's calendar date in `APP_TIMEZONE`, as `"YYYY-MM-DD"`. */
 export function today(): string {
   return dateInZone(currentInstant());

@@ -33,6 +33,9 @@ function baseProps(overrides: Record<string, unknown> = {}) {
     completions: [],
     exceptions: [],
     contract: noContract,
+    currentUserId: "owner-1",
+    partners: [],
+    checkins: [],
     ...overrides,
   };
 }
@@ -305,4 +308,14 @@ test("EXC-06 the owner can remove an exception on a future (read-only) day too",
   expect(
     screen.getByRole("button", { name: "Remove exception" }),
   ).toBeInTheDocument();
+});
+
+test("DT-16 the Accountability partners section renders for any role", () => {
+  for (const role of ["owner", "partner", "viewer"] as const) {
+    const { unmount } = render(<DayView {...baseProps({ role })} />);
+    expect(
+      screen.getByRole("heading", { name: "Accountability partners" }),
+    ).toBeInTheDocument();
+    unmount();
+  }
 });

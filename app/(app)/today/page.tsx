@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/dal";
 /** `/today` is `/day/<today>` (docs/specs/daily-tracking.md). */
 export default async function TodayPage() {
   const user = await requireUser();
-  const data = await loadDayPage(today(), user.role);
+  const data = await loadDayPage(today(), user);
 
   return <DayView {...data} />;
 }

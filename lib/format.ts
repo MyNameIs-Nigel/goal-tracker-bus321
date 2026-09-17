@@ -1,3 +1,5 @@
+import { APP_TIMEZONE } from "@/lib/clock";
+
 /** Up to two initials from a display name, for an avatar fallback. */
 export function initials(name: string): string {
   return (
@@ -20,4 +22,14 @@ export function firstName(name: string): string {
 export function formatJoined(date: Date | string): string {
   const value = typeof date === "string" ? new Date(date) : date;
   return `Joined ${value.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+}
+
+/** "8:12 PM" in America/Denver (docs/specs/partner-check-ins.md § UI). */
+export function formatTime(instant: Date | string): string {
+  const value = typeof instant === "string" ? new Date(instant) : instant;
+  return value.toLocaleTimeString("en-US", {
+    timeZone: APP_TIMEZONE,
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }

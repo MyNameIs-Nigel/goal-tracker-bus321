@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { setFixedNow, today } from "./clock";
+import { now, setFixedNow, today } from "./clock";
 
 afterEach(() => {
   setFixedNow(null);
@@ -50,4 +50,17 @@ test("a fixed clock is ignored when VERCEL_ENV is production, even with E2E_AUTH
     timeZone: "America/Denver",
   }).format(new Date());
   expect(today()).toBe(expected);
+});
+
+test("now() is the fixed instant in test mode and the real clock otherwise", () => {
+  vi.stubEnv("E2E_AUTH", "1");
+  vi.stubEnv("VERCEL_ENV", "preview");
+  setFixedNow("2026-09-24T02:12:00Z");
+  expect(now().toISOString()).toBe("2026-09-24T02:12:00.000Z");
+
+  vi.stubEnv("E2E_AUTH", undefined);
+  const before = Date.now();
+  const real = now().getTime();
+  expect(real).toBeGreaterThanOrEqual(before);
+  expect(real).toBeLessThanOrEqual(Date.now());
 });

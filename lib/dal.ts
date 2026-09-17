@@ -27,9 +27,13 @@ export class ForbiddenError extends Error {
   }
 }
 
-/** True when `role` may do a partner's job (the daily check-in). */
+/**
+ * True when `role` may do a partner's job (the daily check-in). The owner is
+ * not a partner — the permission matrix leaves that column empty
+ * (docs/specs/roles-and-permissions.md, PCI-06).
+ */
 export function canPartner(role: Role): boolean {
-  return role === "partner" || role === "owner";
+  return role === "partner";
 }
 
 export async function getSession(): Promise<{ user: SessionUser } | null> {
@@ -54,7 +58,7 @@ export async function requireUser(): Promise<SessionUser> {
   return session.user;
 }
 
-/** Session with role in {partner, owner}, or throws `Forbidden` (ROLE-03/04). */
+/** Session with role = partner, or throws `Forbidden` (ROLE-04, PCI-06). */
 export async function requirePartner(): Promise<SessionUser> {
   const user = await requireUser();
   if (!canPartner(user.role)) throw new ForbiddenError();
