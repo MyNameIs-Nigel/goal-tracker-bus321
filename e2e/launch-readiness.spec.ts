@@ -134,3 +134,30 @@ test("LAUNCH-05 demotion refreshes authorization for an existing session and act
     await context.close();
   }
 });
+
+test("LAUNCH-06 open profile panel never covers the navigation", async ({
+  page,
+  signInAs,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "phone header layout only");
+  await signInAs("owner");
+  await page.goto("/today");
+  await page.getByRole("button", { name: "User menu" }).click();
+  const panel = page.getByRole("region", { name: "Your profile" });
+  await expect(panel).toBeVisible();
+
+  const panelBox = (await panel.boundingBox())!;
+  const nav = page.getByRole("navigation", { name: "Primary" });
+  for (const name of ["Today", "Goals", "History", "People"]) {
+    const link = nav.getByRole("link", { name, exact: true });
+    const linkBox = (await link.boundingBox())!;
+    expect(
+      linkBox.y + linkBox.height <= panelBox.y,
+      `${name} overlaps the profile panel`,
+    ).toBe(true);
+  }
+
+  // One tap navigates, rather than only dismissing the panel.
+  await nav.getByRole("link", { name: "Goals", exact: true }).click();
+  await expect(page).toHaveURL(/\/goals$/);
+});
