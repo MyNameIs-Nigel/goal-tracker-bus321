@@ -68,7 +68,7 @@ Two Server Actions in `lib/actions/checkins.ts`, both starting with `requirePart
 ### PCI-09 History shows the month
 - **Given** September with Alice checked on 12 of the 15 elapsed days
 - **When** anyone opens `/history?month=2026-09`
-- **Then** the partners block shows **"Alice — 12 of 15 days"** and a strip of day markers
+- **Then** the partners block shows **"Alice — 12 of 15 days"** and a strip of day markers (*M* = elapsed days of the month, defined in [history.md § Definitions](history.md#definitions))
 
 ## UI
 

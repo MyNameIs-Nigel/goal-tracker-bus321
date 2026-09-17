@@ -13,6 +13,19 @@ The month at a glance: which days were clean, missed, or excused; what failed; w
 
 Everyone reads the same thing. Nothing is written from this page.
 
+## Definitions
+
+All pure, in `lib/view/history.ts`, over the same rows the day pages use ([DATA_MODEL.md § Derived rules](../DATA_MODEL.md#derived-rules)):
+
+- **Month** `M` is `?month=YYYY-MM`, defaulting to today's month; anything unparsable (HIST-08) is today's month. `/history` never lists days of another month.
+- **Calendar cell status** is the day status (`none` / `upcoming` / `clean` / `excused` / `missed` / `open`). The accessible label is `"<Month> <D>, <status>"` with `none` spelled **not counting** (e.g. `"September 1, not counting"`, `"September 24, upcoming"`). The legend shows the five visual states **Clean · Missed · Excused · Open · Not counting**; `upcoming` looks like not counting.
+- **Failures in `M`** are the `(G, P)` with status `failed` whose `P.start` is in `M` (the same count `/today` shows). Listed as **"Sep 20 · <title>"** (daily), **"Week of Sep 21 · <title>"** (weekly), **"September · <title>"** (monthly).
+- **Exceptions in `M`** are the exception rows overlapping `M`, listed as **"Sep 21 · Whole day · Flu"** or **"Sep 25 – Sep 28 · <goal title> · <reason>"** (one date when `starts_on = ends_on`).
+- **Completion rate** = `done / (done + failed)` over the counting `(G, P)` with `P.start` in `M` and `P.end < today` — excused periods are in neither number. Shown as **"82% complete"** (rounded), or **"Nothing counted yet"** when the denominator is 0.
+- **Weekly & monthly** lists every `(G, P)` for weekly/monthly goals whose `P.start` is in `M` and whose lifespan overlaps `P` (the same goals a day page in that period would show), labelled **Done / Missed / Excused / Pending / Upcoming / Not counting**. Absent when there are no such goals.
+- **Partner month:** *M* = elapsed days of the month — through today for the current month, all of it for a past month, 0 for a future one — and *N* = that partner's check-ins on those days. Everyone with role `partner` is listed, plus anyone who has a check-in in `M` (a demoted partner's record stays, [people.md PPL-03](people.md)). The strip has one marker per day of the month: checked, not checked, or not yet.
+- **Month navigation:** **"← <Month>"** is offered when the previous month is not before the month of `contract_start` (always, when no start is set); **"<Month> →"** when the next month is not after today's month.
+
 ## Scenarios
 
 ### HIST-01 The calendar shows day statuses
@@ -38,7 +51,7 @@ Everyone reads the same thing. Nothing is written from this page.
 
 ### HIST-06 Partner check-ins for the month
 - **Given** partners Alice (12 of 15 days) and Bob (15 of 15)
-- **Then** the **"Partners"** block shows each with **"N of M days"** and a day strip (PCI-09)
+- **Then** the **"Partners"** block shows each with **"N of M days"** and a day strip (PCI-09); with no partners it reads **"No partners yet."**
 
 ### HIST-07 Fits a phone
 - **Given** a 375px-wide viewport
@@ -50,7 +63,7 @@ Everyone reads the same thing. Nothing is written from this page.
 
 ## UI
 
-Calendar cells: date number and a status dot/fill; today outlined. Below: summary cards in a single column on phones, two columns on desktop. No charts.
+Calendar cells: date number and a status dot/fill; today outlined. Below: summary cards in a single column on phones, two columns on desktop. No charts. The page is a Server Component — nothing here is interactive beyond links.
 
 ## Out of scope
 
