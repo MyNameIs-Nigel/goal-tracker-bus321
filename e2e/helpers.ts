@@ -24,3 +24,9 @@ export async function addGoal(
   if (startsOn) await page.getByLabel("Start date").fill(startsOn);
   await page.getByRole("button", { name: "Save" }).click();
 }
+
+/** Reseeds and pins lib/clock.ts to `now` (docs/TESTING.md § Clock). */
+export async function resetAt(page: Page, now: string) {
+  const response = await page.request.post("/api/e2e/reset", { data: { now } });
+  if (!response.ok()) throw new Error(`reset failed: ${response.status()}`);
+}

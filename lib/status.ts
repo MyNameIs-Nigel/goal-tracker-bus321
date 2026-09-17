@@ -48,10 +48,13 @@ function overlaps(
   return compareDates(aStart, bEnd) <= 0 && compareDates(bStart, aEnd) <= 0;
 }
 
-function excuses(
+/** Whether one exception excuses (G, P) — exported so callers needing the
+ * matched exception itself (with fields beyond this module's Exception
+ * type, e.g. an id) can run the same predicate over their own array. */
+export function excuses<E extends Exception>(
   goal: Pick<Goal, "id" | "cadence">,
   period: Period,
-  exception: Exception,
+  exception: E,
 ): boolean {
   if (exception.goalId === goal.id) {
     return overlaps(

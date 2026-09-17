@@ -8,8 +8,8 @@ import "server-only";
 import { db } from "@/db/client";
 import { completions, exceptions, goals, settings } from "@/db/schema";
 import type { Cadence } from "@/lib/periods";
-import type { Completion, Exception } from "@/lib/status";
-import type { ViewGoal } from "@/lib/view/day";
+import type { Completion } from "@/lib/status";
+import type { ExceptionRecord, ViewGoal } from "@/lib/view/day";
 
 export type Contract = {
   contractStart: string | null;
@@ -19,7 +19,7 @@ export type Contract = {
 export async function getTrackingData(): Promise<{
   goals: ViewGoal[];
   completions: Completion[];
-  exceptions: Exception[];
+  exceptions: ExceptionRecord[];
   contract: Contract;
 }> {
   const [goalRows, completionRows, exceptionRows, settingsRows] =
@@ -48,6 +48,7 @@ export async function getTrackingData(): Promise<{
     })),
     completions: completionRows,
     exceptions: exceptionRows.map((row) => ({
+      id: row.id,
       goalId: row.goalId,
       startsOn: row.startsOn,
       endsOn: row.endsOn,
