@@ -13,6 +13,7 @@ One file per feature. Each is the contract that tests encode and code satisfies.
 | [partner-check-ins.md](partner-check-ins.md) | `PCI` | 3 | Approved |
 | [contract-and-vision.md](contract-and-vision.md) | `CV` | 3 | Approved |
 | [history.md](history.md) | `HIST` | 3 | Approved |
+| [site-identity.md](site-identity.md) | `ID` | 4 | Approved |
 | [hover-feedback.md](hover-feedback.md) | `HOVER` | 4 | Approved |
 | [owner-reminders.md](owner-reminders.md) | `REM` | 5 | Planned — scenarios not yet written |
 
