@@ -9,7 +9,7 @@ A single Next.js 16 app on Vercel, one Postgres database, Google sign-in, three 
 | Framework | Next.js 16.3 App Router, React 19, TypeScript strict | scaffolded; Server Components + Server Actions cover everything here |
 | Styling | Tailwind v4, native HTML elements, no component library | small app; simplicity is the design |
 | Auth | Better Auth — Google provider, Drizzle adapter, `role` field on user | first-class App Router support, roles built in |
-| Database | Neon Postgres (Vercel Marketplace, free tier) via Drizzle ORM + Drizzle Kit migrations, `node-postgres` (`pg`) driver | free, type-safe, DB branches for previews; `pg` speaks plain Postgres wire protocol so the same client code runs unchanged against Neon (its pooled TCP endpoint) and the local Docker container — no Neon-specific driver needed for local dev/CI (ADR-0003) |
+| Database | Neon Postgres (Vercel Marketplace, free tier), **Production only** ([ADR-0004](adr/0004-preview-has-no-database.md)), via Drizzle ORM + Drizzle Kit migrations, `node-postgres` (`pg`) driver | free, type-safe; `pg` speaks plain Postgres wire protocol so the same client code runs unchanged against Neon (its pooled TCP endpoint) and the local Docker container — no Neon-specific driver needed for local dev/CI (ADR-0003) |
 | Rich text | Tiptap editor; HTML stored, sanitized server-side | the vision and contract are the owner's content, edited in-app |
 | Tests | Vitest + React Testing Library; Playwright | per the Next.js 16 testing guide |
 | CI/CD | GitHub Actions for checks; Vercel Git integration for deploys | no deploy tokens, previews per PR |
@@ -98,9 +98,9 @@ Every read of another user's data goes through these; every Server Action starts
 | | Production | Preview (each PR) | CI (GitHub Actions) | Local dev |
 |---|---|---|---|---|
 | URL | `bus321.nigel-smith.dev` (+ `goal-tracker-bus321.vercel.app` redirecting to it) | `goal-tracker-bus321-git-<branch>-….vercel.app` | `localhost:3000` | `localhost:3000` |
-| Database | Neon main branch | Neon preview branch (**branching on**, verified 2026-09-16 in H9 — each preview deployment gets a branch of main; migrations stay additive-only regardless) | Postgres service container | **Postgres in Docker** (`docker compose up -d`) — never Neon |
+| Database | Neon main branch | **none** ([ADR-0004](adr/0004-preview-has-no-database.md), 2026-09-17 — no `DATABASE_URL` at all; any page that queries the database errors) | Postgres service container | **Postgres in Docker** (`docker compose up -d`) — never Neon |
 | Sign-in | Google | **test sign-in** (`E2E_AUTH=1`) | test sign-in | test sign-in (Google optional) |
-| Migrations | in the Vercel build command | in the Vercel build command | before the E2E job | `npm run db:migrate` |
+| Migrations | in the Vercel build command | skipped (`scripts/vercel-build.mjs` only migrates when `VERCEL_ENV === "production"`) | before the E2E job | `npm run db:migrate` |
 
 As of Phase 0 the Vercel project already carries the domains
 `goal-tracker-bus321.vercel.app` and `bus321.nigel-smith.dev` (the latter added
@@ -114,7 +114,7 @@ matching `.nvmrc` and `engines.node`.
 
 | Name | Where | Secret | Set by |
 |---|---|---|---|
-| `DATABASE_URL` | prod, preview | yes | Neon integration (H3 ✅ — also injected `DATABASE_URL_UNPOOLED`, `POSTGRES_*`, `PG*`, `NEON_PROJECT_ID`; the Neon Auth variables `NEON_AUTH_BASE_URL` / `VITE_NEON_AUTH_URL` are unused) |
+| `DATABASE_URL` | prod only ([ADR-0004](adr/0004-preview-has-no-database.md)) | yes | Neon integration (H3 ✅, rescoped off Preview in H10 — also injected `DATABASE_URL_UNPOOLED`, `POSTGRES_*`, `PG*`, `NEON_PROJECT_ID`, likewise rescoped; the Neon Auth variables `NEON_AUTH_BASE_URL` / `VITE_NEON_AUTH_URL` are unused) |
 | `DATABASE_URL` | CI, local | no | CI workflow (service container) / `.env.local` pointing at the Docker container |
 | `BETTER_AUTH_SECRET` | prod, preview | yes | Claude, generated in place (`openssl rand -base64 32`), never displayed |
 | `BETTER_AUTH_URL` | prod | no | Claude — `https://bus321.nigel-smith.dev` (set 2026-09-16 after H6) |
@@ -141,7 +141,7 @@ Tiptap (ProseMirror) with a deliberately small toolbar: Bold, Italic, Heading, B
 
 ```
 GitHub main ──push──▶ Vercel build ──▶ migrate ──▶ next build ──▶ production
-GitHub PR   ──open──▶ Vercel build ──▶ migrate (preview branch) ──▶ preview URL + check on the PR
+GitHub PR   ──open──▶ Vercel build ──▶ next build (no migrate, no database) ──▶ preview URL + check on the PR
 GitHub PR   ──open──▶ Actions: lint · typecheck · unit · e2e (postgres container) · build · flow-check · pr-title
 ```
 

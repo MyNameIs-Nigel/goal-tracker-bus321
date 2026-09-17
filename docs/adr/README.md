@@ -7,6 +7,7 @@ One file per decision (or per batch of related decisions), numbered, never edite
 | [0001](0001-initial-scope.md) | Initial scope — Nigel's answers to the scoping questions | Accepted 2026-09-15 |
 | [0002](0002-gap-filling-defaults.md) | Gap-filling defaults chosen by Claude | Accepted 2026-09-15 (veto by ID) |
 | [0003](0003-public-repo-and-local-database.md) | Repository is public; local database runs in Docker | Accepted 2026-09-16 |
+| [0004](0004-preview-has-no-database.md) | Preview deployments have no database — production only | Accepted 2026-09-17 |
 
 ## Template
 

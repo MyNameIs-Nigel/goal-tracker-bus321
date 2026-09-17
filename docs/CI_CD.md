@@ -59,19 +59,19 @@ Dependabot PRs still need every `ci.yml` job green. With branch protection + aut
 ## Deploys (Vercel)
 
 - **Production**: every push to `main`. Domain `bus321.nigel-smith.dev`; the `*.vercel.app` alias redirects to it (Vercel domain setting, after H6).
-- **Preview**: every PR. The Vercel GitHub app comments the URL on the PR and posts a status check. Preview environment has `E2E_AUTH=1`, so the three test sign-in buttons work there for manual review (Vercel's deployment protection keeps previews private to Nigel's account).
+- **Preview**: every PR. The Vercel GitHub app comments the URL on the PR and posts a status check. Preview environment has `E2E_AUTH=1`, so the three test sign-in buttons work there for manual review (Vercel's deployment protection keeps previews private to Nigel's account). Preview has **no database** — [ADR-0004](adr/0004-preview-has-no-database.md) — so any page that queries Postgres errors on a preview URL; Preview's job is just to prove the build succeeds and clear the required `Vercel` check.
 - **`vercel.json`** (committed):
   ```json
   {
     "$schema": "https://openapi.vercel.sh/vercel.json",
     "framework": "nextjs",
-    "buildCommand": "npm run db:migrate && npm run build"
+    "buildCommand": "npm run vercel-build"
   }
   ```
   Node version comes from `engines.node` in `package.json`. No `installCommand` override; Vercel runs `npm ci` from the lockfile.
 
-  This build command was correct from Phase 0 onward and has never needed editing: `db:migrate` was a no-op placeholder until Phase 1 pointed it at Drizzle's migrator (`scripts/db-migrate.mjs`, `drizzle-orm/node-postgres/migrator`).
-- **Migrations run inside the build**, before `next build`, against whichever `DATABASE_URL` the environment has (production DB, or the Neon preview branch). They are additive-only in v1 ([DATA_MODEL.md § Migrations](DATA_MODEL.md#migrations)), so a preview that shares the production DB can't break it. A failed migration fails the build, and the previous deployment stays live. New migrations are generated with `npm run db:generate` after editing `db/schema.ts`, then committed.
+  `npm run vercel-build` (`scripts/vercel-build.mjs`) runs `db:migrate` only when `VERCEL_ENV === "production"`, then always runs `next build`. Before [ADR-0004](adr/0004-preview-has-no-database.md) the command was a plain `npm run db:migrate && npm run build`, correct from Phase 0 onward since `db:migrate` was a no-op placeholder until Phase 1 pointed it at Drizzle's migrator (`scripts/db-migrate.mjs`, `drizzle-orm/node-postgres/migrator`) — Preview stopped having a database to migrate, so the command had to branch.
+- **Migrations run inside the build**, before `next build`, against Production's `DATABASE_URL` — the only environment that has one ([ADR-0004](adr/0004-preview-has-no-database.md)). They are additive-only in v1 ([DATA_MODEL.md § Migrations](DATA_MODEL.md#migrations)). A failed migration fails the build, and the previous deployment stays live. New migrations are generated with `npm run db:generate` after editing `db/schema.ts`, then committed.
 - **Rollback**: Vercel → Deployments → promote the previous one. Or `git revert` on `main`.
 
 ## Caching
