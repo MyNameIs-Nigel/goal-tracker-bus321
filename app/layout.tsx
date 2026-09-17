@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://bus321.nigel-smith.dev"),
   title: "BUS 321 Goal Tracker",
   description:
     "Nigel's accountability tracker for BUS 321 — goals, daily progress, and the contract behind them.",

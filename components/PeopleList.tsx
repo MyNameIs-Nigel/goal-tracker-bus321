@@ -64,7 +64,7 @@ export default function PeopleList({
           key={person.id}
           className="ui-hover-edge flex items-center gap-3 rounded-xl border border-border p-3"
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent text-sm font-medium text-white">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent text-sm font-medium text-on-accent">
             {person.image ? (
               // eslint-disable-next-line @next/next/no-img-element -- avatar comes from Google, not a local/optimizable asset
               <img

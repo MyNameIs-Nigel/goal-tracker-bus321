@@ -14,7 +14,7 @@ export default function Nav({ role }: { role: Role }) {
   return (
     <nav
       aria-label="Primary"
-      className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium"
+      className="order-3 flex w-full flex-wrap items-center justify-between sm:order-none sm:w-auto sm:justify-start gap-x-3 gap-y-1 text-sm font-medium"
     >
       {LINKS.map((link) => (
         <Link

@@ -133,7 +133,7 @@ export default function ExceptionDialog({
         <button
           type="submit"
           disabled={pending}
-          className="ui-hover-solid rounded-full bg-accent px-4 py-2 text-sm font-medium text-white"
+          className="ui-hover-solid rounded-full bg-accent px-4 py-2 text-sm font-medium text-on-accent"
         >
           Save
         </button>

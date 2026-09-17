@@ -83,7 +83,7 @@ function OwnRow({
           type="button"
           onClick={handleCheckIn}
           disabled={pending}
-          className="ui-hover-solid self-start rounded-full bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="ui-hover-solid self-start rounded-full bg-accent px-4 py-2 text-sm font-medium text-on-accent disabled:opacity-60"
         >
           I checked today
         </button>

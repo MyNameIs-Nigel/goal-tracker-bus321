@@ -10,9 +10,12 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
       <header className="border-b border-border">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-6 py-4">
-          <span className="hidden text-sm font-semibold tracking-tight sm:inline">
+        <div className="relative mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-3 sm:px-6">
+          <span className="text-sm font-semibold tracking-tight">
             BUS 321 Goal Tracker
           </span>
           <Nav role={user.role} />
@@ -24,7 +27,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           />
         </div>
       </header>
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto w-full max-w-3xl flex-1 px-5 py-8 sm:px-6"
+      >
         {children}
       </main>
     </>

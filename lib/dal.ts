@@ -5,6 +5,8 @@
  */
 import "server-only";
 
+import { cache } from "react";
+
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
@@ -36,20 +38,23 @@ export function canPartner(role: Role): boolean {
   return role === "partner";
 }
 
-export async function getSession(): Promise<{ user: SessionUser } | null> {
-  const result = await auth.api.getSession({ headers: await headers() });
-  if (!result) return null;
-  const { user } = result;
-  return {
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      image: user.image ?? null,
-      role: (user as unknown as { role: Role }).role,
-    },
-  };
-}
+// Deduplicate layout/page checks within one render; never cache across requests.
+export const getSession = cache(
+  async (): Promise<{ user: SessionUser } | null> => {
+    const result = await auth.api.getSession({ headers: await headers() });
+    if (!result) return null;
+    const { user } = result;
+    return {
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image ?? null,
+        role: (user as unknown as { role: Role }).role,
+      },
+    };
+  },
+);
 
 /** Session or `redirect("/")` (AUTH-01). */
 export async function requireUser(): Promise<SessionUser> {
