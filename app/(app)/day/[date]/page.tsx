@@ -11,7 +11,7 @@ export default async function DayPage({ params }: PageProps<"/day/[date]">) {
   if (!isValidCalendarDate(date)) notFound();
 
   const user = await requireUser();
-  const data = await loadDayPage(date, user.role);
+  const data = await loadDayPage(date, user);
 
   return <DayView {...data} />;
 }

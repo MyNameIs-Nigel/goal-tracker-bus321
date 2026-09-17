@@ -26,6 +26,7 @@ import {
 } from "@/lib/view/day";
 
 import ExceptionDialog from "@/components/ExceptionDialog";
+import PartnerCheckins from "@/components/PartnerCheckins";
 import type { DayPageData } from "@/lib/day-page";
 
 function statusText(goal: GoalStatusView): string {
@@ -379,6 +380,15 @@ export default function DayView(props: DayPageData) {
             Mark an exception
           </button>
         ))}
+
+      <PartnerCheckins
+        date={props.date}
+        todayDate={props.todayDate}
+        role={props.role}
+        currentUserId={props.currentUserId}
+        partners={props.partners}
+        checkins={props.checkins}
+      />
     </div>
   );
 }

@@ -7,6 +7,12 @@ import "server-only";
 
 import { today as todayFn } from "@/lib/clock";
 import type { Role } from "@/lib/dal";
+import {
+  listCheckinsOn,
+  listPartners,
+  type CheckinRecord,
+  type PartnerSummary,
+} from "@/lib/queries/checkins";
 import { getOwnerFirstName } from "@/lib/queries/owner";
 import { getTrackingData } from "@/lib/queries/tracking";
 import type { Completion } from "@/lib/status";
@@ -16,28 +22,43 @@ export type DayPageData = {
   date: string;
   todayDate: string;
   role: Role;
+  currentUserId: string;
   ownerFirstName: string;
   goals: ViewGoal[];
   completions: Completion[];
   exceptions: ExceptionRecord[];
   contract: Contract;
+  partners: PartnerSummary[];
+  checkins: CheckinRecord[];
 };
 
 export async function loadDayPage(
   date: string,
-  role: Role,
+  viewer: { id: string; role: Role },
 ): Promise<DayPageData> {
-  const [{ goals, completions, exceptions, contract }, ownerFirstName] =
-    await Promise.all([getTrackingData(), getOwnerFirstName()]);
+  const [
+    { goals, completions, exceptions, contract },
+    ownerFirstName,
+    partners,
+    checkins,
+  ] = await Promise.all([
+    getTrackingData(),
+    getOwnerFirstName(),
+    listPartners(),
+    listCheckinsOn(date),
+  ]);
 
   return {
     date,
     todayDate: todayFn(),
-    role,
+    role: viewer.role,
+    currentUserId: viewer.id,
     ownerFirstName,
     goals,
     completions,
     exceptions,
     contract,
+    partners,
+    checkins,
   };
 }
