@@ -51,8 +51,8 @@ The planned owner-reminders phase was dropped ([ADR-0005](adr/0005-every-student
 **Code (outline):** `teams` table and team-scoped `goals`, `exceptions`, `checkins`, `documents` (migration `0001_teams`); `requireUser()` returns the caller's team, creating it on first use; every action scoped to the caller's team; `/team/[id]` pages for teammates; `/today` rebuilt as *your day → your teammates → checked on you*; first-goal quick add on `/today`; fake students and a demo data set for test mode.
 
 **Exit criteria:**
-- [ ] Every scenario ID in the specs has a passing test (`npm run trace`), and all checks are green in CI.
-- [ ] Locally, with demo data, at phone width: sign in → tick goals → check in on both teammates happens on `/today` alone (DT-17).
+- [ ] Every scenario ID in the specs has a passing test (`npm run trace`), and all checks are green in CI. — locally: 113/113 scenarios named; lint, format, typecheck, 281 unit/component tests, build, and 172 Playwright tests (desktop + Pixel 7) green against a real Postgres. CI pending on the PR.
+- [x] Locally, with demo data, at phone width: sign in → tick goals → check in on both teammates happens on `/today` alone (DT-17). — verified in both Playwright projects and by eye at iPhone width, light and dark.
 - [ ] Merged and deployed: the production build applied `0001_teams`, and `/` still serves the sign-in page.
 
 ---
