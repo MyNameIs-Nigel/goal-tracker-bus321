@@ -1,17 +1,13 @@
 # Contract & vision
 
-**Status:** Approved
-**Phase:** 3
-**Routes:** `/contract`
-**Rules:** [DATA_MODEL.md § documents](../DATA_MODEL.md#documents), [§ settings](../DATA_MODEL.md#settings), [ARCHITECTURE.md § Rich text](../ARCHITECTURE.md#rich-text)
+**Status:** Approved (revised for teams by [ADR-0005](../adr/0005-every-student-owns-a-team.md))
+**Phase:** 3, revised in 5
+**Routes:** `/contract` (yours), `/team/[teamId]/contract` (a teammate's)
+**Rules:** [DATA_MODEL.md § documents](../DATA_MODEL.md#documents), [§ teams](../DATA_MODEL.md#teams), [ARCHITECTURE.md § Rich text](../ARCHITECTURE.md#rich-text)
 
 ## Purpose
 
-The assignment's two written pieces — *who I want to become* and the *accountability contract* — live here as rich text the owner writes in the app. Partners read the consequence they're enforcing, and see who the partners are. Contract dates are set here too, because they drive the counting rules.
-
-## Roles
-
-Owner: edit both documents and the dates. Everyone: read.
+The assignment's two written pieces — *who I want to become* and the *accountability contract* — live on each team as rich text its owner writes in the app. Partners read the consequence they're enforcing. Contract dates are set here too, because they drive the counting rules for that team.
 
 ## Phased test coverage
 
@@ -19,31 +15,31 @@ CV-03 and CV-04 are about what the Server Action accepts, so they are unit tests
 
 ## Action interface
 
-Two Server Actions in `lib/actions/documents.ts`, both owner-only (`Forbidden` otherwise, ROLE-03):
+Two Server Actions in `lib/actions/documents.ts`, both starting with `requireUser()` and both writing **only the caller's own team** — neither takes a team id:
 
-- `saveDocument(key, html)` — `key` is `vision` or `contract`; `html` is what the editor emitted. The action sanitizes it (`lib/sanitize.ts`, implemented with `sanitize-html`), rejects the result if it exceeds 20,000 characters (CV-04), stores it with `updated_at = now()` and `updated_by = the owner`, and returns the stored HTML plus the "Last updated" line's inputs.
-- `saveContractDates(start, end)` — each is `YYYY-MM-DD` or empty (→ `NULL`); end before start is rejected (CV-07). Writes `settings` row 1.
+- `saveDocument(key, html)` — `key` is `vision` or `contract`; `html` is what the editor emitted. The action sanitizes it (`lib/sanitize.ts`, implemented with `sanitize-html`), rejects the result if it exceeds 20,000 characters (CV-04), upserts it on `(team, key)` with `updated_at = now()`, and returns the stored HTML plus the "Last updated" line's input.
+- `saveContractDates(start, end)` — each is `YYYY-MM-DD` or empty (→ `NULL`); end before start is rejected (CV-07). Writes the caller's `teams` row.
 
 ## Formats
 
 - Date range under the title: **"Sep 19 – Dec 18, 2026"** when both dates share a year; **"Sep 19, 2026 – Jan 18, 2027"** otherwise; **"Starts Sep 19, 2026"** with only a start; **"No contract dates yet"** with neither.
-- Placeholders (owner, empty document): vision **"Write who you want to become…"**, contract **"Write your accountability contract…"**. Everyone else sees **"Not written yet."**
-- **"Last updated Sep 18 by Nigel"** appears only once a document has been saved (`updated_by` set).
-- **"Accountability partners: Alice, Bob"** — partners by name; **"Accountability partners: none yet"** when there are none.
+- Placeholders (your own empty document): vision **"Write who you want to become…"**, contract **"Write your accountability contract…"**. On a teammate's page: **"Not written yet."**
+- **"Last updated Sep 18"** appears only once a document has been saved.
+- **"Accountability partners: Blake Brown, Casey Clark"** — the team's partners by name; **"Accountability partners: none yet"** when there are none.
 
 ## Scenarios
 
 ### CV-01 The page shows the two documents, the dates, and the partners
-- **Given** both documents written, `contract_start = 2026-09-19`, `contract_end = 2026-12-18`, partners Alice and Bob
-- **When** anyone opens `/contract`
-- **Then** the page shows **"Sep 19 – Dec 18, 2026"** under the title, a section **"Who I want to become"** with the vision, a section **"Accountability contract"** with the contract, and **"Accountability partners: Alice, Bob"**
+- **Given** Avery's documents written, `contract_start = 2026-09-19`, `contract_end = 2026-12-18`, and students Blake and Casey
+- **When** anyone opens Avery's contract page
+- **Then** the page shows **"Sep 19 – Dec 18, 2026"** under the title, a section **"Who I want to become"** with the vision, a section **"Accountability contract"** with the contract, and **"Accountability partners: Blake Brown, Casey Clark"**
 
-### CV-02 Owner edits a document
-- **Given** the owner on `/contract`
+### CV-02 Edit a document
+- **Given** a student on `/contract`
 - **When** they press **"Edit"** on the contract section
 - **Then** an editor replaces the rendered text with a toolbar of **Bold · Italic · Heading · Bullet list · Numbered list · Link** (Tiptap StarterKit; "Heading" toggles an `h2`; "Link" prompts for a URL) and **"Save"** / **"Cancel"** buttons
 - **And when** they type, apply bold, and press Save
-- **Then** the rendered section shows the new content and `documents.contract.updated_at` advances
+- **Then** the rendered section shows the new content and the document's `updated_at` advances
 
 ### CV-03 Saved HTML is sanitized
 - **When** a save is invoked (even directly) with `<p>Hi</p><script>alert(1)</script><a href="javascript:x" onclick="y">bad</a><a href="https://ok.example">ok</a>`
@@ -55,27 +51,28 @@ Two Server Actions in `lib/actions/documents.ts`, both owner-only (`Forbidden` o
 - **Then** **"This is too long — keep it under 20,000 characters"** and nothing is saved
 
 ### CV-05 Last updated
-- **Given** the vision was saved by the owner on Sep 18
-- **Then** under the section: **"Last updated Sep 18 by Nigel"** (owner's first name from Google)
+- **Given** the vision was saved on Sep 18
+- **Then** under the section: **"Last updated Sep 18"**
 
 ### CV-06 Empty documents
 - **Given** an empty contract document
-- **Then** the owner sees the placeholder **"Write your accountability contract…"** with the Edit button; others see **"Not written yet."**
+- **Then** its owner sees the placeholder **"Write your accountability contract…"** with the Edit button; on the team's page a teammate sees **"Not written yet."**
 
-### CV-07 Owner sets the contract dates
-- **Given** the owner
+### CV-07 Set the contract dates
+- **Given** a student on `/contract`
 - **When** they press **"Edit dates"**, set start `2026-09-19` and end `2026-12-18`, and save
-- **Then** the header shows the range and `/today` reflects "Day N of 91"
+- **Then** the header shows the range and their `/today` reflects "Day N of 91"
 - **When** end is before start → **"End date can't be before start date"** and nothing is saved
 
 ### CV-08 Cancel discards
 - **Given** the editor open with unsaved changes
-- **When** the owner presses **"Cancel"**
+- **When** the student presses **"Cancel"**
 - **Then** the rendered text is unchanged
 
-### CV-09 Non-owners can't write
-- **Given** a partner or viewer
-- **Then** no Edit / Edit dates controls; direct save actions are rejected (ROLE-03)
+### CV-09 A teammate's contract is read-only
+- **Given** Blake on Avery's `/team/<id>/contract`
+- **Then** there are no Edit / Edit dates controls
+- **And** the save actions take no team id: whatever Blake invokes writes only his own team ([teams.md TEAM-06](teams.md))
 
 ### CV-10 Rendered documents look like documents
 - **Given** a stored document with headings, lists and a link

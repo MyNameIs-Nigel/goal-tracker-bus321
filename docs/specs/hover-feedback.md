@@ -1,7 +1,7 @@
 # Hover & focus feedback
 
-**Status:** Approved
-**Phase:** 4 (polish — requested by Nigel ahead of the rest of Phase 4)
+**Status:** Approved (wording revised for teams by [ADR-0005](../adr/0005-every-student-owns-a-team.md))
+**Phase:** 4 (polish — requested by Nigel ahead of the rest of Phase 4), revised in 5
 **Routes:** every route
 **Rules:** none — this is presentation only; nothing here reads or writes data
 
@@ -13,7 +13,7 @@ One accent, one duration, one vocabulary of six classes. No new colours, no shad
 
 ## Roles
 
-None. This is the same for owner, partner and viewer; it changes appearance only. A control that a role cannot see does not become visible, and a block that is not interactive does not become clickable.
+None. This is the same for every student, on their own pages and on a teammate's; it changes appearance only. A control that isn't shown does not become visible, and a block that is not interactive does not become clickable.
 
 ## The vocabulary
 
@@ -22,36 +22,36 @@ Six classes in `app/globals.css`, applied in the markup. Tests name the class, s
 | Class | For | At rest | On hover / focus |
 |---|---|---|---|
 | `ui-hover-accent` | text-only controls: nav links, inline buttons ("Edit", "Archive", "Remove exception"), date and month navigation | inherited colour | `color: var(--accent)` |
-| `ui-hover-underline` | inline links already drawn in the accent ("Add one", "Promote someone on the People page") | accent, no underline | `color: var(--accent-hover)` + underline |
-| `ui-hover-solid` | filled accent buttons ("Add goal", "Save", "Continue with Google", "I checked today") | `bg-accent` | `background-color: var(--accent-hover)` |
+| `ui-hover-underline` | inline links already drawn in the accent ("Add one") | accent, no underline | `color: var(--accent-hover)` + underline |
+| `ui-hover-solid` | filled accent buttons ("Add goal", "Save", "Continue with Google", "Check in") | `bg-accent` | `background-color: var(--accent-hover)` |
 | `ui-hover-surface` | bordered **interactive** things: outline buttons, checkable goal rows, selects, cadence pills | `border-border`, no fill | `border-color: var(--accent)` **and** `background-color: var(--accent-soft)` |
-| `ui-hover-edge` | bordered **non-interactive** blocks and form fields: the failure / exception / completion boxes, the weekly & monthly table rows, partner cards, goal cards, people rows, inputs and textareas | `border-border` | `border-color: var(--accent)` only — no fill, because nothing happens if you click |
+| `ui-hover-edge` | bordered **non-interactive** blocks and form fields: the failure / exception / completion boxes, the weekly & monthly table rows, partner and teammate rows, goal cards, inputs and textareas | `border-border` | `border-color: var(--accent)` only — no fill, because nothing happens if you click |
 | `ui-hover-outline` | things whose own box must not change: history day cells, the avatar button | `outline: 2px solid transparent` | `outline-color: var(--accent)` |
 
 Two new tokens sit beside `--accent` in both colour schemes: `--accent-hover` (a step darker in light, a step lighter in dark, for filled buttons) and `--accent-soft` (the accent at low opacity, for tints).
 
-The split between `ui-hover-surface` and `ui-hover-edge` is the point: **a fill means you can click it; a border alone means look closer.** A viewer's read-only goal row must not pretend to be a button.
+The split between `ui-hover-surface` and `ui-hover-edge` is the point: **a fill means you can click it; a border alone means look closer.** A goal row on a teammate's page is read-only and must not pretend to be a button.
 
 ## Scenarios
 
 ### HOVER-01 Nav links take the accent on hover
 - **Given** any signed-in page
-- **When** the pointer rests on a primary nav link ("Today", "Goals", "Contract", "History", "People")
+- **When** the pointer rests on a primary nav link ("Today", "Goals", "Contract", "History")
 - **Then** its text colour becomes the accent
 
 ### HOVER-02 Filled accent buttons deepen on hover
-- **Given** the owner on `/goals`
+- **Given** a student on `/goals`
 - **When** the pointer rests on **"Add goal"**
 - **Then** its background becomes `--accent-hover`, a visibly different colour from its resting `--accent`
 
 ### HOVER-03 Outlined buttons take an accent border and a tint
-- **Given** the owner on `/today`
+- **Given** a student on `/today`
 - **When** the pointer rests on **"Mark an exception"**
 - **Then** its border becomes the accent and its background becomes the soft accent tint
 
 ### HOVER-04 A checkable goal row highlights on hover
-- **Given** the owner on `/today` with a daily goal
-- **Then** the goal row carries `ui-hover-surface`; for a viewer, who cannot check it off, the same row carries `ui-hover-edge` instead and never gains a fill
+- **Given** a student on `/today` with a daily goal
+- **Then** the goal row carries `ui-hover-surface`; on the team's page, where a teammate cannot check it off, the same row carries `ui-hover-edge` instead and never gains a fill
 
 ### HOVER-05 A history day cell shows an outline on hover
 - **Given** anyone on `/history`
@@ -68,7 +68,7 @@ The split between `ui-hover-surface` and `ui-hover-edge` is the point: **a fill 
 - **Then** its `transition-duration` is `150ms` and its transition covers colour, background, border and outline — including the nav bar, which must not snap
 
 ### HOVER-08 A disabled control shows no hover accent
-- **Given** the owner on `/goals` with one goal, whose **"Move up"** button is disabled
+- **Given** a student on `/goals` with one goal, whose **"Move up"** button is disabled
 - **When** the pointer rests on it
 - **Then** nothing about it changes
 

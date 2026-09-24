@@ -4,10 +4,11 @@ One file per decision (or per batch of related decisions), numbered, never edite
 
 | ADR | Title | Status |
 |---|---|---|
-| [0001](0001-initial-scope.md) | Initial scope — Nigel's answers to the scoping questions | Accepted 2026-09-15 |
-| [0002](0002-gap-filling-defaults.md) | Gap-filling defaults chosen by Claude | Accepted 2026-09-15 (veto by ID) |
+| [0001](0001-initial-scope.md) | Initial scope — Nigel's answers to the scoping questions | Accepted 2026-09-15 (B2–B4, D5 superseded by 0005) |
+| [0002](0002-gap-filling-defaults.md) | Gap-filling defaults chosen by Claude | Accepted 2026-09-15 (veto by ID; G12, G15 superseded in part by 0005) |
 | [0003](0003-public-repo-and-local-database.md) | Repository is public; local database runs in Docker | Accepted 2026-09-16 |
 | [0004](0004-preview-has-no-database.md) | Preview deployments have no database — production only | Accepted 2026-09-17 |
+| [0005](0005-every-student-owns-a-team.md) | Every student owns a team; no roles, no reminders | Accepted 2026-09-24 |
 
 ## Template
 
