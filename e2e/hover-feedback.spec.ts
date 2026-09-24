@@ -40,7 +40,7 @@ test("HOVER-01 a nav link takes the accent on hover", async ({
   isMobile,
 }) => {
   test.skip(isMobile, "touch devices get no hover accent — that is HOVER-10");
-  await signInAs("viewer");
+  await signInAs("blake");
   await page.goto("/today");
 
   const link = page.getByRole("link", { name: "Goals" });
@@ -55,7 +55,7 @@ test("HOVER-02 a filled accent button deepens on hover", async ({
   isMobile,
 }) => {
   test.skip(isMobile, "touch devices get no hover accent — that is HOVER-10");
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
 
   const button = page.getByRole("button", { name: "Add goal" });
@@ -70,7 +70,7 @@ test("HOVER-03 an outlined button takes an accent border and a tint", async ({
   isMobile,
 }) => {
   test.skip(isMobile, "touch devices get no hover accent — that is HOVER-10");
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/today");
 
   const button = page.getByRole("button", { name: "Mark an exception" });
@@ -88,7 +88,7 @@ test("HOVER-05 a history day shows an outline on hover, and only that day", asyn
   isMobile,
 }) => {
   test.skip(isMobile, "touch devices get no hover accent — that is HOVER-10");
-  await signInAs("viewer");
+  await signInAs("blake");
   // An explicit month, so the test doesn't depend on when CI runs.
   await page.goto("/history?month=2026-09");
 
@@ -108,7 +108,7 @@ test("HOVER-07 accents transition in 150ms, nav bar included", async ({
   page,
   signInAs,
 }) => {
-  await signInAs("viewer");
+  await signInAs("blake");
   await page.goto("/today");
 
   const link = page.getByRole("link", { name: "Goals" });
@@ -130,7 +130,7 @@ test("HOVER-08 a disabled control shows no hover accent", async ({
   isMobile,
 }) => {
   test.skip(isMobile, "touch devices get no hover accent — that is HOVER-10");
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
   await addGoal(page, { title: "Read 20 pages" });
 
@@ -151,7 +151,7 @@ test("HOVER-09 keyboard focus shows the same accent as hover", async ({
   page,
   signInAs,
 }) => {
-  await signInAs("viewer");
+  await signInAs("blake");
   await page.goto("/today");
 
   const link = page.getByRole("link", { name: "Goals" });
@@ -167,7 +167,7 @@ test("HOVER-10 a touch-only device gets no hover accent", async ({
   isMobile,
 }) => {
   test.skip(!isMobile, "the point of this one is the touch viewport");
-  await signInAs("viewer");
+  await signInAs("blake");
   await page.goto("/today");
 
   expect(await page.evaluate(() => matchMedia("(hover: hover)").matches)).toBe(
@@ -193,7 +193,7 @@ test.describe("reduced motion", () => {
     isMobile,
   }) => {
     test.skip(isMobile, "hover is covered on the desktop project");
-    await signInAs("viewer");
+    await signInAs("blake");
     await page.goto("/today");
 
     const link = page.getByRole("link", { name: "Goals" });

@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { expect, teamPath, test } from "./fixtures";
 import { resetAt } from "./helpers";
 
 // Friday 2026-09-18 in Denver — CV-05's "Last updated Sep 18".
@@ -25,7 +25,7 @@ test("CV-01 the page shows the dates, both documents, and the partners", async (
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/contract");
 
   await page.getByRole("button", { name: "Edit dates" }).click();
@@ -37,8 +37,8 @@ test("CV-01 the page shows the dates, both documents, and the partners", async (
     await page.keyboard.type("Five failures means I buy lunch.");
   });
 
-  await signInAs("viewer");
-  await page.goto("/contract");
+  await signInAs("blake");
+  await page.goto(teamPath("avery", "/contract"));
   await expect(page.getByText("Sep 19 – Dec 18, 2026")).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Who I want to become" }),
@@ -49,16 +49,16 @@ test("CV-01 the page shows the dates, both documents, and the partners", async (
     ),
   ).toBeVisible();
   await expect(
-    page.getByText("Accountability partners: Test Partner"),
+    page.getByText("Accountability partners: Blake Brown, Casey Clark"),
   ).toBeVisible();
 });
 
-test("CV-02 owner edits a document with the toolbar and saves", async ({
+test("CV-02 a student edits their document with the toolbar and saves", async ({
   page,
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/contract");
 
   const contract = section(page, "Accountability contract");
@@ -83,7 +83,7 @@ test("CV-02 owner edits a document with the toolbar and saves", async ({
   await contract.getByRole("button", { name: "Save" }).click();
 
   await expect(contract.locator("strong")).toHaveText("bold");
-  await expect(contract.getByText("Last updated Sep 18 by Test")).toBeVisible();
+  await expect(contract.getByText("Last updated Sep 18")).toBeVisible();
 
   await page.reload();
   await expect(
@@ -91,12 +91,9 @@ test("CV-02 owner edits a document with the toolbar and saves", async ({
   ).toHaveText("bold");
 });
 
-test("CV-05 last updated names the day and the owner's first name", async ({
-  page,
-  signInAs,
-}) => {
+test("CV-05 last updated names the day", async ({ page, signInAs }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/contract");
 
   const vision = section(page, "Who I want to become");
@@ -105,15 +102,17 @@ test("CV-05 last updated names the day and the owner's first name", async ({
   await vision.locator(".ProseMirror").click();
   await page.keyboard.type("Someone who finishes.");
   await vision.getByRole("button", { name: "Save" }).click();
-  await expect(vision.getByText("Last updated Sep 18 by Test")).toBeVisible();
+  await expect(
+    vision.getByText("Last updated Sep 18", { exact: true }),
+  ).toBeVisible();
 });
 
-test("CV-06 empty documents show a placeholder to the owner and 'Not written yet.' to others", async ({
+test("CV-06 empty documents show a placeholder to their owner and 'Not written yet.' to teammates", async ({
   page,
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/contract");
   await expect(
     page.getByText("Write your accountability contract…"),
@@ -123,17 +122,17 @@ test("CV-06 empty documents show a placeholder to the owner and 'Not written yet
     page.getByRole("button", { name: "Edit", exact: true }),
   ).toHaveCount(2);
 
-  await signInAs("partner");
-  await page.goto("/contract");
+  await signInAs("blake");
+  await page.goto(teamPath("avery", "/contract"));
   await expect(page.getByText("Not written yet.")).toHaveCount(2);
 });
 
-test("CV-07 owner sets the contract dates; /today reflects Day N of M; end before start is rejected", async ({
+test("CV-07 a student sets their contract dates; /today reflects Day N of M; end before start is rejected", async ({
   page,
   signInAs,
 }) => {
   await resetAt(page, "2026-09-23T18:00:00Z");
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/contract");
 
   await page.getByRole("button", { name: "Edit dates" }).click();
@@ -158,7 +157,7 @@ test("CV-07 owner sets the contract dates; /today reflects Day N of M; end befor
 
 test("CV-08 Cancel discards unsaved changes", async ({ page, signInAs }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/contract");
 
   const contract = section(page, "Accountability contract");
@@ -173,21 +172,20 @@ test("CV-08 Cancel discards unsaved changes", async ({ page, signInAs }) => {
   ).toBeVisible();
 });
 
-test("CV-09 non-owners see no Edit or Edit dates controls", async ({
+test("CV-09 a teammate's contract has no Edit or Edit dates controls", async ({
   page,
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  for (const role of ["partner", "viewer"] as const) {
-    await signInAs(role);
-    await page.goto("/contract");
-    await expect(
-      page.getByRole("button", { name: "Edit", exact: true }),
-    ).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Edit dates" })).toHaveCount(
-      0,
-    );
-  }
+  await signInAs("blake");
+  await page.goto(teamPath("avery", "/contract"));
+  await expect(
+    page.getByRole("heading", { name: "Who I want to become" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Edit", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Edit dates" })).toHaveCount(0);
 });
 
 test("CV-10 headings, lists and links render like a document", async ({
@@ -195,7 +193,7 @@ test("CV-10 headings, lists and links render like a document", async ({
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/contract");
 
   // The fixture auto-accepts dialogs with no value; the Link prompt needs a URL.

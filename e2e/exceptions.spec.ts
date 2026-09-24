@@ -1,15 +1,15 @@
-import { expect, test } from "./fixtures";
+import { expect, teamPath, test } from "./fixtures";
 import { addGoal, resetAt } from "./helpers";
 
 // Wednesday 2026-09-23 (Denver), 5 days into the seeded 2026-09-19 contract.
 const FIXED_NOW = "2026-09-23T18:00:00Z";
 
-test("EXC-01 the owner can open the dialog on any day; non-owners never see it", async ({
+test("EXC-01 you can open the dialog on any of your own days; a teammate's pages never show it", async ({
   page,
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
 
   for (const path of ["/today", "/day/2026-09-21", "/day/2026-09-28"]) {
     await page.goto(path);
@@ -18,9 +18,12 @@ test("EXC-01 the owner can open the dialog on any day; non-owners never see it",
     ).toBeVisible();
   }
 
-  for (const role of ["partner", "viewer"] as const) {
-    await signInAs(role);
-    await page.goto("/today");
+  await signInAs("blake");
+  for (const path of [
+    teamPath("avery"),
+    teamPath("avery", "/day/2026-09-28"),
+  ]) {
+    await page.goto(path);
     await expect(
       page.getByRole("button", { name: "Mark an exception" }),
     ).toHaveCount(0);
@@ -32,7 +35,7 @@ test("EXC-02 a whole-day exception excuses every daily goal that day", async ({
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
   await addGoal(page, { title: "D1" });
 
@@ -51,7 +54,7 @@ test("EXC-03 a goal-specific exception excuses only that goal", async ({
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
   await addGoal(page, { title: "D1" });
   await addGoal(page, { title: "D2" });
@@ -81,7 +84,7 @@ test("EXC-05 validation rejects a bad range and an empty reason", async ({
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/today");
 
   // Next.js's own route announcer is also `role="alert"`
@@ -98,12 +101,12 @@ test("EXC-05 validation rejects a bad range and an empty reason", async ({
   await expect(formError).toHaveText("End date can't be before start date");
 });
 
-test("EXC-06 owner removes an exception and the goal's status recomputes", async ({
+test("EXC-06 a student removes their exception and the goal's status recomputes", async ({
   page,
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
   await addGoal(page, { title: "D1" });
 
@@ -118,9 +121,12 @@ test("EXC-06 owner removes an exception and the goal's status recomputes", async
   await expect(page.getByText("Excused — Flu")).toHaveCount(0);
 });
 
-test("EXC-08 exceptions are visible to viewers", async ({ page, signInAs }) => {
+test("EXC-08 exceptions are visible to every partner", async ({
+  page,
+  signInAs,
+}) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
   await addGoal(page, { title: "D1" });
 
@@ -129,10 +135,13 @@ test("EXC-08 exceptions are visible to viewers", async ({ page, signInAs }) => {
   await page.getByLabel("Reason").fill("Flu");
   await page.getByRole("button", { name: "Save" }).click();
 
-  await signInAs("viewer");
-  await page.goto("/day/2026-09-24");
+  await signInAs("blake");
+  await page.goto(teamPath("avery", "/day/2026-09-24"));
   await expect(page.getByText("Excused — Flu")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Remove exception" }),
   ).toHaveCount(0);
+
+  await page.goto(teamPath("avery", "/history?month=2026-09"));
+  await expect(page.getByText("Sep 24 · Whole day · Flu")).toBeVisible();
 });

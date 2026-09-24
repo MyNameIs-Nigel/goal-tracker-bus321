@@ -38,23 +38,21 @@ const emptyDoc = (key: "vision" | "contract") => ({
   key,
   bodyHtml: "",
   updatedAt: null,
-  updatedByName: null,
 });
 
 function baseProps(overrides: Record<string, unknown> = {}) {
   return {
-    role: "owner" as const,
+    isOwn: true,
     contract: { contractStart: "2026-09-19", contractEnd: "2026-12-18" },
     documents: {
       vision: {
         key: "vision" as const,
         bodyHtml: "<p>Become <strong>disciplined</strong>.</p>",
         updatedAt: "2026-09-19T03:30:00Z",
-        updatedByName: "Nigel Smith",
       },
       contract: emptyDoc("contract"),
     },
-    partners: ["Alice", "Bob"],
+    partners: ["Blake Brown", "Casey Clark"],
     ...overrides,
   };
 }
@@ -76,7 +74,7 @@ test("CV-01 the page shows the dates, both documents, and the partners", () => {
   expect(visionSection()).toHaveTextContent("Become disciplined.");
   expect(contractSection()).toBeInTheDocument();
   expect(
-    screen.getByText("Accountability partners: Alice, Bob"),
+    screen.getByText("Accountability partners: Blake Brown, Casey Clark"),
   ).toBeInTheDocument();
 });
 
@@ -150,13 +148,14 @@ test("CV-04 the action's size error is shown and the editor stays open", async (
   ).toBeInTheDocument();
 });
 
-test("CV-05 a saved document shows who updated it and when", () => {
+test("CV-05 a saved document shows when it was last updated", () => {
   render(<ContractView {...baseProps()} />);
-  expect(visionSection()).toHaveTextContent("Last updated Sep 18 by Nigel");
+  expect(visionSection()).toHaveTextContent("Last updated Sep 18");
+  expect(visionSection()).not.toHaveTextContent(" by ");
   expect(contractSection()).not.toHaveTextContent("Last updated");
 });
 
-test("CV-06 empty documents: owner sees the placeholder and Edit; others see 'Not written yet.'", () => {
+test("CV-06 empty documents: your own show the placeholder and Edit; a teammate's read 'Not written yet.'", () => {
   const { unmount } = render(<ContractView {...baseProps()} />);
   expect(contractSection()).toHaveTextContent(
     "Write your accountability contract…",
@@ -169,7 +168,7 @@ test("CV-06 empty documents: owner sees the placeholder and Edit; others see 'No
   render(
     <ContractView
       {...baseProps({
-        role: "viewer",
+        isOwn: false,
         documents: {
           vision: emptyDoc("vision"),
           contract: emptyDoc("contract"),
@@ -181,7 +180,7 @@ test("CV-06 empty documents: owner sees the placeholder and Edit; others see 'No
   expect(contractSection()).toHaveTextContent("Not written yet.");
 });
 
-test("CV-07 the owner edits the dates; the header updates", async () => {
+test("CV-07 editing the dates updates the header", async () => {
   vi.mocked(saveContractDates).mockResolvedValue({
     ok: true,
     contract: { contractStart: "2026-09-19", contractEnd: "2026-12-18" },
@@ -239,12 +238,9 @@ test("CV-08 Cancel discards unsaved changes", () => {
   expect(saveDocument).not.toHaveBeenCalled();
 });
 
-test("CV-09 partners and viewers get no Edit or Edit dates controls", () => {
-  for (const role of ["partner", "viewer"] as const) {
-    const { unmount } = render(<ContractView {...baseProps({ role })} />);
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
-    unmount();
-  }
+test("CV-09 a teammate's contract has no Edit or Edit dates controls", () => {
+  render(<ContractView {...baseProps({ isOwn: false })} />);
+  expect(screen.queryByRole("button")).not.toBeInTheDocument();
 });
 
 test("CV-10 headings, lists and links render as a document; links open in a new tab", () => {
@@ -258,7 +254,6 @@ test("CV-10 headings, lists and links render as a document; links open in a new 
             bodyHtml:
               '<h2>Rules</h2><ul><li><p>Read</p></li></ul><p><a href="https://ok.example" rel="noopener noreferrer" target="_blank">syllabus</a></p>',
             updatedAt: "2026-09-19T03:30:00Z",
-            updatedByName: "Nigel Smith",
           },
         },
       })}

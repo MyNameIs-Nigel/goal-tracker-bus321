@@ -33,17 +33,15 @@ test("CV-01 only a start, or no dates at all", () => {
   );
 });
 
-test("CV-05 last updated names the day (Denver) and the owner's first name", () => {
+test("CV-05 last updated names the day in Denver; nothing before the first save", () => {
   // 03:30 UTC on 9/19 is still the evening of 9/18 in America/Denver.
-  expect(lastUpdatedLabel("2026-09-19T03:30:00Z", "Nigel Smith")).toBe(
-    "Last updated Sep 18 by Nigel",
-  );
-  expect(lastUpdatedLabel(null, null)).toBeNull();
+  expect(lastUpdatedLabel("2026-09-19T03:30:00Z")).toBe("Last updated Sep 18");
+  expect(lastUpdatedLabel(null)).toBeNull();
 });
 
 test("CV-01 partners are listed by name, or 'none yet'", () => {
-  expect(partnersLabel(["Alice", "Bob"])).toBe(
-    "Accountability partners: Alice, Bob",
+  expect(partnersLabel(["Blake Brown", "Casey Clark"])).toBe(
+    "Accountability partners: Blake Brown, Casey Clark",
   );
   expect(partnersLabel([])).toBe("Accountability partners: none yet");
 });

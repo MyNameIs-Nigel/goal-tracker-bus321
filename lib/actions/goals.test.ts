@@ -22,17 +22,7 @@ const transactionMock = vi.fn(async (fn: (tx: unknown) => Promise<void>) => {
   });
 });
 
-class ForbiddenError extends Error {
-  constructor() {
-    super("Forbidden");
-    this.name = "Forbidden";
-  }
-}
-
-vi.mock("@/lib/dal", () => ({
-  requireUser: requireUserMock,
-  ForbiddenError,
-}));
+vi.mock("@/lib/dal", () => ({ requireUser: requireUserMock }));
 
 vi.mock("@/lib/clock", () => ({ today: todayMock }));
 
@@ -64,8 +54,7 @@ const {
 } = await import("./goals");
 const { validateGoalInput } = await import("@/lib/validation/goals");
 
-const owner = { id: "owner-1", role: "owner" as const };
-const viewer = { id: "viewer-1", role: "viewer" as const };
+const avery = { id: "user-avery", teamId: "team-avery" };
 
 const baseInput = {
   title: "Read 20 pages",
@@ -76,6 +65,7 @@ const baseInput = {
 
 const goalRow = {
   id: "goal-1",
+  teamId: "team-avery",
   title: "Read 20 pages",
   description: "Any book, before bed",
   cadence: "daily" as const,
@@ -89,7 +79,7 @@ const goalRow = {
 const goalWithMeta = { ...goalRow, hasCompletions: false };
 
 beforeEach(() => {
-  requireUserMock.mockReset().mockResolvedValue(owner);
+  requireUserMock.mockReset().mockResolvedValue(avery);
   todayMock.mockReset().mockReturnValue("2026-09-25");
 
   activeGoalsInCadenceMock.mockReset().mockResolvedValue([]);
@@ -109,11 +99,12 @@ beforeEach(() => {
   transactionMock.mockClear();
 });
 
-test("GOAL-02 owner adds a goal with defaults filled in", async () => {
+test("GOAL-02 adds a goal on the caller's own team with defaults filled in", async () => {
   const result = await createGoal(baseInput);
   expect(result).toEqual({ ok: true, goal: goalWithMeta });
   expect(insertValuesMock).toHaveBeenCalledWith(
     expect.objectContaining({
+      teamId: "team-avery",
       title: "Read 20 pages",
       description: "Any book, before bed",
       cadence: "daily",
@@ -121,6 +112,8 @@ test("GOAL-02 owner adds a goal with defaults filled in", async () => {
       sortOrder: 0,
     }),
   );
+  expect(activeGoalsInCadenceMock).toHaveBeenCalledWith("team-avery", "daily");
+  expect(getGoalWithMetaMock).toHaveBeenCalledWith("team-avery", "goal-1");
 });
 
 test("GOAL-03 rejects an empty title with an inline error", async () => {
@@ -148,12 +141,13 @@ test("GOAL-03 rejects a description over 500 characters", async () => {
   });
 });
 
-test("GOAL-04 owner edits a goal's title and description", async () => {
+test("GOAL-04 edits a goal's title and description", async () => {
   const result = await updateGoal("goal-1", {
     ...baseInput,
     title: "Read 30 pages",
   });
   expect(result).toEqual({ ok: true, goal: goalWithMeta });
+  expect(getGoalMock).toHaveBeenCalledWith("team-avery", "goal-1");
   expect(updateSetMock).toHaveBeenCalledWith(
     expect.objectContaining({
       title: "Read 30 pages",
@@ -188,7 +182,7 @@ test("GOAL-05 allows a cadence change when nothing has been completed", async ()
   );
 });
 
-test("GOAL-06 owner changes the start date", async () => {
+test("GOAL-06 changes the start date", async () => {
   await updateGoal("goal-1", { ...baseInput, startsOn: "2026-09-19" });
   expect(updateSetMock).toHaveBeenCalledWith(
     expect.objectContaining({ startsOn: "2026-09-19" }),
@@ -243,6 +237,7 @@ test("GOAL-10 moving a goal up swaps sort_order with its predecessor", async () 
       { id: "a", sortOrder: 1 },
     ],
   });
+  expect(activeGoalsInCadenceMock).toHaveBeenCalledWith("team-avery", "daily");
 });
 
 test("GOAL-10 moving the first goal up is a no-op", async () => {
@@ -257,15 +252,25 @@ test("GOAL-10 moving the first goal up is a no-op", async () => {
   expect(transactionMock).not.toHaveBeenCalled();
 });
 
-test("GOAL-11 rejects a non-owner caller with Forbidden", async () => {
-  requireUserMock.mockResolvedValue(viewer);
-  await expect(createGoal(baseInput)).rejects.toThrow("Forbidden");
-  await expect(updateGoal("goal-1", baseInput)).rejects.toThrow("Forbidden");
-  await expect(archiveGoal("goal-1")).rejects.toThrow("Forbidden");
-  await expect(unarchiveGoal("goal-1")).rejects.toThrow("Forbidden");
-  await expect(deleteGoal("goal-1")).rejects.toThrow("Forbidden");
-  await expect(moveGoal("goal-1", "up")).rejects.toThrow("Forbidden");
-  expect(insertValuesMock).not.toHaveBeenCalled();
+test("GOAL-11 / TEAM-06 another team's goal id is 'Goal not found.' and nothing is written", async () => {
+  // Blake is signed in; the goal belongs to Avery's team, so looking it up
+  // on Blake's team finds nothing.
+  requireUserMock.mockResolvedValue({ id: "user-blake", teamId: "team-blake" });
+  getGoalMock.mockResolvedValue(null);
+  const notFound = { ok: false, error: "Goal not found." };
+
+  await expect(updateGoal("goal-1", baseInput)).resolves.toEqual(notFound);
+  await expect(archiveGoal("goal-1")).resolves.toEqual(notFound);
+  await expect(unarchiveGoal("goal-1")).resolves.toEqual(notFound);
+  await expect(deleteGoal("goal-1")).resolves.toEqual(notFound);
+  await expect(moveGoal("goal-1", "up")).resolves.toEqual(notFound);
+
+  for (const [teamId] of getGoalMock.mock.calls) {
+    expect(teamId).toBe("team-blake");
+  }
+  expect(updateSetMock).not.toHaveBeenCalled();
+  expect(deleteWhereMock).not.toHaveBeenCalled();
+  expect(transactionMock).not.toHaveBeenCalled();
 });
 
 test("validateGoalInput accepts a well-formed input", () => {

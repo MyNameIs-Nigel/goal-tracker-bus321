@@ -41,8 +41,6 @@ function checkinsFor(userId: string, days: number[]) {
   return days.map((day) => ({
     userId,
     date: `2026-09-${String(day).padStart(2, "0")}`,
-    note: null,
-    createdAt: "2026-09-01T00:00:00Z",
   }));
 }
 
@@ -309,21 +307,4 @@ test("HIST-06 a past month is fully elapsed; a future month has 0 elapsed days",
     checkins: [],
   });
   expect(future.partners[0]).toMatchObject({ checked: 0, elapsed: 0 });
-});
-
-test("HIST-06 someone with check-ins in the month is listed even after demotion", () => {
-  const data = buildHistoryData({
-    month: "2026-09",
-    today: "2026-09-15",
-    goals: [],
-    contract,
-    completions: [],
-    exceptions: [],
-    partners: [alice],
-    checkins: [
-      { ...checkinsFor("bob", [3])[0], userName: "Bob" },
-      { ...checkinsFor("carol", [4])[0], userName: "Carol" },
-    ],
-  });
-  expect(data.partners.map((p) => p.name)).toEqual(["Alice", "Bob", "Carol"]);
 });

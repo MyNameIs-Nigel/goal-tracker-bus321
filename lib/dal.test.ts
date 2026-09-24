@@ -1,10 +1,13 @@
 import { beforeEach, expect, test, vi } from "vitest";
 
 const getSessionMock = vi.fn();
+const ensureTeamMock = vi.fn();
 
 vi.mock("./auth", () => ({
   auth: { api: { getSession: getSessionMock } },
 }));
+
+vi.mock("@/lib/queries/teams", () => ({ ensureTeam: ensureTeamMock }));
 
 vi.mock("next/headers", () => ({
   headers: vi.fn().mockResolvedValue(new Headers()),
@@ -14,74 +17,37 @@ vi.mock("next/navigation", () => ({
   redirect: vi.fn((url: string) => {
     throw new Error(`REDIRECT:${url}`);
   }),
-  notFound: vi.fn(() => {
-    throw new Error("NOT_FOUND");
-  }),
 }));
 
-const { canPartner, requireOwner, requirePartner, requireUser } =
-  await import("./dal");
-
-function sessionFor(role: "owner" | "partner" | "viewer") {
-  return {
-    user: {
-      id: `id-${role}`,
-      name: `Test ${role}`,
-      email: `${role}@example.com`,
-      image: null,
-      role,
-    },
-    session: {},
-  };
-}
+const { requireUser } = await import("./dal");
 
 beforeEach(() => {
   getSessionMock.mockReset();
-});
-
-test("canPartner is true only for a partner (the owner is not a partner)", () => {
-  expect(canPartner("partner")).toBe(true);
-  expect(canPartner("owner")).toBe(false);
-  expect(canPartner("viewer")).toBe(false);
+  ensureTeamMock.mockReset().mockResolvedValue("team-avery");
 });
 
 test("AUTH-01 requireUser redirects to / when there is no session", async () => {
   getSessionMock.mockResolvedValue(null);
   await expect(requireUser()).rejects.toThrow("REDIRECT:/");
+  expect(ensureTeamMock).not.toHaveBeenCalled();
 });
 
-test("requireUser returns the session user, including role", async () => {
-  getSessionMock.mockResolvedValue(sessionFor("viewer"));
-  await expect(requireUser()).resolves.toMatchObject({
-    email: "viewer@example.com",
-    role: "viewer",
+test("TEAM-01 requireUser returns the session user with their own team, created on first use", async () => {
+  getSessionMock.mockResolvedValue({
+    user: {
+      id: "user-avery",
+      name: "Avery Adams",
+      email: "avery@e2e.local",
+      image: null,
+    },
+    session: {},
   });
-});
-
-test("ROLE-03 requirePartner throws Forbidden for a viewer", async () => {
-  getSessionMock.mockResolvedValue(sessionFor("viewer"));
-  await expect(requirePartner()).rejects.toThrow("Forbidden");
-});
-
-test("requirePartner succeeds for a partner", async () => {
-  getSessionMock.mockResolvedValue(sessionFor("partner"));
-  await expect(requirePartner()).resolves.toMatchObject({ role: "partner" });
-});
-
-test("PCI-06 requirePartner throws Forbidden for the owner too", async () => {
-  getSessionMock.mockResolvedValue(sessionFor("owner"));
-  await expect(requirePartner()).rejects.toThrow("Forbidden");
-});
-
-test("ROLE-02 requireOwner is notFound() for a viewer or a partner", async () => {
-  getSessionMock.mockResolvedValue(sessionFor("viewer"));
-  await expect(requireOwner()).rejects.toThrow("NOT_FOUND");
-
-  getSessionMock.mockResolvedValue(sessionFor("partner"));
-  await expect(requireOwner()).rejects.toThrow("NOT_FOUND");
-});
-
-test("requireOwner succeeds for the owner", async () => {
-  getSessionMock.mockResolvedValue(sessionFor("owner"));
-  await expect(requireOwner()).resolves.toMatchObject({ role: "owner" });
+  await expect(requireUser()).resolves.toEqual({
+    id: "user-avery",
+    name: "Avery Adams",
+    email: "avery@e2e.local",
+    image: null,
+    teamId: "team-avery",
+  });
+  expect(ensureTeamMock).toHaveBeenCalledWith("user-avery");
 });

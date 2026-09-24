@@ -44,14 +44,12 @@ function september(
     })),
     exceptions: [flu],
     partners: [
-      { id: "alice", name: "Alice", image: null },
-      { id: "bob", name: "Bob", image: null },
+      { id: "blake", name: "Blake Brown", image: null },
+      { id: "casey", name: "Casey Clark", image: null },
     ],
     checkins: [1, 2, 3].map((day) => ({
-      userId: "alice",
+      userId: "blake",
       date: `2026-09-0${day}`,
-      note: null,
-      createdAt: "2026-09-01T00:00:00Z",
     })),
   });
 }
@@ -117,6 +115,18 @@ test("HIST-03 each day links to its day page", () => {
   expect(
     screen.getByLabelText("September 20, missed").closest("a"),
   ).toHaveAttribute("href", "/day/2026-09-20");
+});
+
+test("HIST-03 a teammate's history links stay on their team", () => {
+  const team = "0e9f5c1a-2b3c-4d5e-8f60-718293a4b5c6";
+  render(<HistoryView data={september("2026-10-05")} teamId={team} />);
+  expect(
+    screen.getByLabelText("September 20, missed").closest("a"),
+  ).toHaveAttribute("href", `/team/${team}/day/2026-09-20`);
+  expect(screen.getByRole("link", { name: "October →" })).toHaveAttribute(
+    "href",
+    `/team/${team}/history?month=2026-10`,
+  );
 });
 
 test("HIST-04 the month summary", () => {
@@ -185,16 +195,16 @@ test("HIST-05 the table is absent with no weekly or monthly goals", () => {
 test("PCI-09 the Partners block shows N of M days and a strip", () => {
   render(<HistoryView data={september("2026-09-15")} />);
   const section = screen.getByRole("region", { name: "Partners" });
-  expect(section).toHaveTextContent("Alice — 3 of 15 days");
-  expect(section).toHaveTextContent("Bob — 0 of 15 days");
+  expect(section).toHaveTextContent("Blake Brown — 3 of 15 days");
+  expect(section).toHaveTextContent("Casey Clark — 0 of 15 days");
   expect(
-    within(section).getByLabelText("Alice, September 1, checked"),
+    within(section).getByLabelText("Blake Brown, September 1, checked"),
   ).toBeInTheDocument();
   expect(
-    within(section).getByLabelText("Alice, September 4, not checked"),
+    within(section).getByLabelText("Blake Brown, September 4, not checked"),
   ).toBeInTheDocument();
   expect(
-    within(section).getByLabelText("Alice, September 16, not yet"),
+    within(section).getByLabelText("Blake Brown, September 16, not yet"),
   ).toBeInTheDocument();
 });
 

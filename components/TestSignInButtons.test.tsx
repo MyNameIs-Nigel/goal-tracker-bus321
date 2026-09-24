@@ -19,25 +19,43 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-test("AUTH-09 shows Owner, Partner and Viewer under a Test sign-in caption", () => {
+test("AUTH-09 shows Avery, Blake, Casey and Load demo data under a Test sign-in caption", () => {
   render(<TestSignInButtons />);
   expect(screen.getByText("Test sign-in")).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Owner" })).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Partner" })).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Viewer" })).toBeInTheDocument();
+  for (const name of ["Avery", "Blake", "Casey", "Load demo data"]) {
+    expect(screen.getByRole("button", { name })).toBeInTheDocument();
+  }
 });
 
-test("pressing Partner signs in as the partner test account and lands on /today", async () => {
+test("AUTH-09 pressing Blake signs in as Blake and lands on /today", async () => {
   render(<TestSignInButtons />);
-  fireEvent.click(screen.getByRole("button", { name: "Partner" }));
+  fireEvent.click(screen.getByRole("button", { name: "Blake" }));
 
   await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/today"));
-
   expect(fetch).toHaveBeenCalledWith(
     "/api/e2e/sign-in",
     expect.objectContaining({
       method: "POST",
-      body: JSON.stringify({ role: "partner" }),
+      body: JSON.stringify({ student: "blake" }),
     }),
   );
+});
+
+test("AUTH-13 Load demo data reseeds with demo content, then signs in as Avery", async () => {
+  render(<TestSignInButtons />);
+  fireEvent.click(screen.getByRole("button", { name: "Load demo data" }));
+
+  await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/today"));
+  const calls = vi.mocked(fetch).mock.calls;
+  expect(calls[0]).toEqual([
+    "/api/e2e/reset",
+    expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({ demo: true }),
+    }),
+  ]);
+  expect(calls[1]).toEqual([
+    "/api/e2e/sign-in",
+    expect.objectContaining({ body: JSON.stringify({ student: "avery" }) }),
+  ]);
 });
