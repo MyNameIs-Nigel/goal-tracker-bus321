@@ -4,7 +4,6 @@ import { useState, useTransition, type FormEvent } from "react";
 
 import RichTextEditor from "@/components/RichTextEditor";
 import { saveContractDates, saveDocument } from "@/lib/actions/documents";
-import type { Role } from "@/lib/dal";
 import { compareDates } from "@/lib/dates";
 import type {
   ContractWindow,
@@ -30,10 +29,10 @@ const PLACEHOLDERS: Record<DocumentKey, string> = {
 /** CV-02..06, CV-08..10 — one document: rendered, or the editor. */
 function DocumentSection({
   document: initial,
-  isOwner,
+  isOwn,
 }: {
   document: DocumentView;
-  isOwner: boolean;
+  isOwn: boolean;
 }) {
   const [document, setDocument] = useState(initial);
   const [editing, setEditing] = useState(false);
@@ -42,7 +41,7 @@ function DocumentSection({
   const [pending, startTransition] = useTransition();
 
   const headingId = `${document.key}-heading`;
-  const updated = lastUpdatedLabel(document.updatedAt, document.updatedByName);
+  const updated = lastUpdatedLabel(document.updatedAt);
 
   function startEditing() {
     setDraft(document.bodyHtml);
@@ -70,7 +69,7 @@ function DocumentSection({
         <h2 id={headingId} className="text-lg font-semibold tracking-tight">
           {TITLES[document.key]}
         </h2>
-        {isOwner && !editing && (
+        {isOwn && !editing && (
           <button
             type="button"
             onClick={startEditing}
@@ -114,7 +113,7 @@ function DocumentSection({
         />
       ) : (
         <p className="text-muted">
-          {isOwner ? PLACEHOLDERS[document.key] : "Not written yet."}
+          {isOwn ? PLACEHOLDERS[document.key] : "Not written yet."}
         </p>
       )}
 
@@ -123,13 +122,13 @@ function DocumentSection({
   );
 }
 
-/** CV-01, CV-07 — the dates under the title, editable by the owner. */
+/** CV-01, CV-07 — the dates under the title, editable on your own team. */
 function ContractDates({
   contract: initial,
-  isOwner,
+  isOwn,
 }: {
   contract: ContractWindow;
-  isOwner: boolean;
+  isOwn: boolean;
 }) {
   const [contract, setContract] = useState(initial);
   const [editing, setEditing] = useState(false);
@@ -161,7 +160,7 @@ function ContractDates({
     return (
       <div className="flex flex-wrap items-center gap-3">
         <p className="text-muted">{contractRangeLabel(contract)}</p>
-        {isOwner && (
+        {isOwn && (
           <button
             type="button"
             onClick={() => {
@@ -229,27 +228,26 @@ function ContractDates({
   );
 }
 
-/** CV-01..10 — the /contract page: dates → vision → contract → partners. */
+/** CV-01..10 — a team's contract page: dates → vision → contract → partners. */
 export default function ContractView({
-  role,
+  isOwn,
   contract,
   documents,
   partners,
 }: {
-  role: Role;
+  isOwn: boolean;
   contract: ContractWindow;
   documents: Record<DocumentKey, DocumentView>;
   partners: readonly string[];
 }) {
-  const isOwner = role === "owner";
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Contract</h1>
-        <ContractDates contract={contract} isOwner={isOwner} />
+        <ContractDates contract={contract} isOwn={isOwn} />
       </div>
-      <DocumentSection document={documents.vision} isOwner={isOwner} />
-      <DocumentSection document={documents.contract} isOwner={isOwner} />
+      <DocumentSection document={documents.vision} isOwn={isOwn} />
+      <DocumentSection document={documents.contract} isOwn={isOwn} />
       <p className="text-sm text-muted">{partnersLabel(partners)}</p>
     </div>
   );

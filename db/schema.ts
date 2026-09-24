@@ -7,8 +7,10 @@ import {
   boolean,
   check,
   date,
+  index,
   integer,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -16,33 +18,23 @@ import {
 } from "drizzle-orm/pg-core";
 
 // ---------------------------------------------------------------------------
-// Better Auth tables, shape per its docs, plus the `role` column and the
-// partial unique index that guarantees exactly one owner (DATA_MODEL.md).
+// Better Auth tables, shape per its docs. No role column: every student owns
+// a team and every other student is a partner (ADR-0005).
 // ---------------------------------------------------------------------------
 
-export const user = pgTable(
-  "user",
-  {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    email: text("email").notNull().unique(),
-    emailVerified: boolean("email_verified").notNull().default(false),
-    image: text("image"),
-    role: text("role").notNull().default("viewer"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [
-    check("role_check", sql`${table.role} IN ('owner','partner','viewer')`),
-    uniqueIndex("one_owner")
-      .on(table.role)
-      .where(sql`${table.role} = 'owner'`),
-  ],
-);
+export const user = pgTable("user", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").notNull().default(false),
+  image: text("image"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
 
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
@@ -89,15 +81,41 @@ export const verification = pgTable("verification", {
 });
 
 // ---------------------------------------------------------------------------
-// App tables (docs/DATA_MODEL.md § Tables). Migration 0001 creates all of
-// these, including the documents/settings seed rows, so Phases 2–3 add data,
-// not structure.
+// App tables (docs/DATA_MODEL.md § Tables). Every row belongs to one team.
 // ---------------------------------------------------------------------------
+
+export const teams = pgTable(
+  "teams",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerId: text("owner_id")
+      .notNull()
+      .unique()
+      .references(() => user.id, { onDelete: "cascade" }),
+    contractStart: date("contract_start"),
+    contractEnd: date("contract_end"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check(
+      "contract_range_check",
+      sql`${table.contractEnd} IS NULL OR ${table.contractStart} IS NULL OR ${table.contractEnd} >= ${table.contractStart}`,
+    ),
+  ],
+);
 
 export const goals = pgTable(
   "goals",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     description: text("description"),
     cadence: text("cadence").notNull(),
@@ -112,6 +130,7 @@ export const goals = pgTable(
       .defaultNow(),
   },
   (table) => [
+    index("goals_team_id").on(table.teamId),
     check(
       "cadence_check",
       sql`${table.cadence} IN ('daily','weekly','monthly')`,
@@ -145,6 +164,9 @@ export const exceptions = pgTable(
   "exceptions",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
     goalId: uuid("goal_id").references(() => goals.id, {
       onDelete: "cascade",
     }),
@@ -156,6 +178,7 @@ export const exceptions = pgTable(
       .defaultNow(),
   },
   (table) => [
+    index("exceptions_team_id").on(table.teamId),
     check(
       "date_range_check",
       sql`${table.endsOn} >= ${table.startsOn} AND ${table.endsOn} - ${table.startsOn} <= 31`,
@@ -167,10 +190,13 @@ export const exceptions = pgTable(
   ],
 );
 
-export const partnerCheckins = pgTable(
-  "partner_checkins",
+export const checkins = pgTable(
+  "checkins",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
@@ -184,7 +210,11 @@ export const partnerCheckins = pgTable(
       .defaultNow(),
   },
   (table) => [
-    uniqueIndex("partner_checkins_user_date").on(table.userId, table.date),
+    uniqueIndex("checkins_team_user_date").on(
+      table.teamId,
+      table.userId,
+      table.date,
+    ),
     check(
       "note_length",
       sql`${table.note} IS NULL OR char_length(${table.note}) <= 280`,
@@ -195,36 +225,18 @@ export const partnerCheckins = pgTable(
 export const documents = pgTable(
   "documents",
   {
-    key: text("key").primaryKey(),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
+    key: text("key").notNull(),
     bodyHtml: text("body_html").notNull().default(""),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
-    updatedBy: text("updated_by").references(() => user.id, {
-      onDelete: "set null",
-    }),
   },
   (table) => [
+    primaryKey({ columns: [table.teamId, table.key] }),
     check("key_check", sql`${table.key} IN ('vision','contract')`),
     check("body_html_length", sql`char_length(${table.bodyHtml}) <= 20000`),
-  ],
-);
-
-export const settings = pgTable(
-  "settings",
-  {
-    id: integer("id").primaryKey(),
-    contractStart: date("contract_start"),
-    contractEnd: date("contract_end"),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [
-    check("single_row", sql`${table.id} = 1`),
-    check(
-      "contract_range_check",
-      sql`${table.contractEnd} IS NULL OR ${table.contractStart} IS NULL OR ${table.contractEnd} >= ${table.contractStart}`,
-    ),
   ],
 );

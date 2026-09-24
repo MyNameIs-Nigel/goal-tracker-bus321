@@ -1,7 +1,7 @@
 /**
- * Pure view-model assembly for /today and /day/[date] (docs/specs/daily-tracking.md).
- * Takes the whole tracker's data (cheap at this scale, ADR-0002 G2) and a
- * date, and produces exactly what the page needs to render — no DB access.
+ * Pure view-model assembly for a team's day pages (docs/specs/daily-tracking.md).
+ * Takes one team's rows (cheap at this scale, ADR-0002 G2) and a date, and
+ * produces exactly what the page needs to render — no DB access.
  */
 import { formatMonthName } from "@/lib/dates";
 import { isActive, periodFor, type Cadence } from "@/lib/periods";

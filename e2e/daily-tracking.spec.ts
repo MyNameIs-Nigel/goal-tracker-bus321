@@ -197,9 +197,9 @@ test("DT-17 the daily routine never leaves /today", async ({
   await addGoal(page, { title: "Workout" });
 
   await page.goto("/today");
-  let navigations = 0;
-  page.on("framenavigated", (frame) => {
-    if (frame === page.mainFrame()) navigations++;
+  // A marker on the document: any real navigation or reload would drop it.
+  await page.evaluate(() => {
+    (window as unknown as { stayed: boolean }).stayed = true;
   });
 
   await page.getByRole("button", { name: /Read 20 pages/ }).click();
@@ -210,7 +210,11 @@ test("DT-17 the daily routine never leaves /today", async ({
   await page.getByRole("button", { name: "Check in on Casey" }).click();
   await expect(teammateRow(page, "Casey Clark")).toContainText("Checked ✓");
 
-  expect(navigations).toBe(0);
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { stayed?: boolean }).stayed,
+    ),
+  ).toBe(true);
   await expect(page).toHaveURL("/today");
 
   await page.reload();

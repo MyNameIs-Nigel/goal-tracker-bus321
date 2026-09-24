@@ -12,19 +12,21 @@ vi.mock("@/lib/actions/checkins", () => ({
   saveNote: vi.fn(),
 }));
 
+import type { Teammate } from "@/lib/view/teammates";
+
 const { default: TeammateList } = await import("./TeammateList");
 const { checkIn, saveNote } = await import("@/lib/actions/checkins");
 
 const TODAY = "2026-09-23";
 
-const blake = {
+const blake: Teammate = {
   teamId: "team-blake",
   name: "Blake Brown",
   image: null,
   summary: "2 of 3 done · 4-day streak",
   checkin: null,
 };
-const casey = {
+const casey: Teammate = {
   teamId: "team-casey",
   name: "Casey Clark",
   image: null,
@@ -111,6 +113,7 @@ test("PCI-03 a note is optional: Add a note, save it, and it shows on the row", 
   fireEvent.click(
     within(row("Blake Brown")).getByRole("button", { name: "Add a note" }),
   );
+  expect(screen.getByLabelText("Note for Blake")).toHaveFocus();
   fireEvent.change(screen.getByLabelText("Note for Blake"), {
     target: { value: "Nice streak, keep it up" },
   });
@@ -129,7 +132,7 @@ test("PCI-03 a note is optional: Add a note, save it, and it shows on the row", 
   expect(row("Blake Brown")).toHaveTextContent("Nice streak, keep it up");
   expect(
     within(row("Blake Brown")).getByRole("button", { name: "Edit note" }),
-  ).toBeInTheDocument();
+  ).toHaveFocus();
 });
 
 test("PCI-04 a note over 280 characters shows the error and is not sent", async () => {

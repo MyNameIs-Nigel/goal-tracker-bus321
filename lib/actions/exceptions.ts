@@ -1,11 +1,12 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db/client";
 import { exceptions } from "@/db/schema";
-import { ForbiddenError, requireUser } from "@/lib/dal";
+import { requireUser } from "@/lib/dal";
+import { getGoal } from "@/lib/queries/goals";
 import type { ExceptionRecord } from "@/lib/view/day";
 import { validateExceptionInput } from "@/lib/validation/exceptions";
 
@@ -22,29 +23,27 @@ export type ExceptionActionResult =
 
 export type SimpleActionResult = { ok: true } | { ok: false; error: string };
 
-async function requireOwnerCaller() {
-  const user = await requireUser();
-  if (user.role !== "owner") throw new ForbiddenError();
-  return user;
-}
-
-/** EXC-02/03 — owner marks a whole-day or goal-specific exception. */
+/** EXC-02/03 — a whole-day or goal-specific exception on the caller's own team. */
 export async function createException(
   input: ExceptionInput,
 ): Promise<ExceptionActionResult> {
-  await requireOwnerCaller();
+  const { teamId } = await requireUser();
 
   const error = validateExceptionInput(input);
   if (error) return { ok: false, error };
 
-  if (input.scope === "goal" && !input.goalId) {
-    return { ok: false, error: "Choose a goal." };
+  let goalId: string | null = null;
+  if (input.scope === "goal") {
+    // EXC-09 — only one of the caller's own goals.
+    const goal = input.goalId ? await getGoal(teamId, input.goalId) : null;
+    if (!goal) return { ok: false, error: "Choose a goal." };
+    goalId = goal.id;
   }
-  const goalId = input.scope === "goal" ? input.goalId : null;
 
   const [row] = await db
     .insert(exceptions)
     .values({
+      teamId,
       goalId,
       startsOn: input.startsOn,
       endsOn: input.endsOn,
@@ -66,12 +65,18 @@ export async function createException(
   };
 }
 
-/** EXC-06 — owner removes an exception. */
+/** EXC-06 — remove one of the caller's own exceptions (EXC-09: nobody else's). */
 export async function removeException(id: string): Promise<SimpleActionResult> {
-  await requireOwnerCaller();
+  const { teamId } = await requireUser();
 
-  await db.delete(exceptions).where(eq(exceptions.id, id));
+  const removed = await db
+    .delete(exceptions)
+    .where(and(eq(exceptions.id, id), eq(exceptions.teamId, teamId)))
+    .returning({ id: exceptions.id });
+  if (removed.length === 0) {
+    return { ok: false, error: "Exception not found." };
+  }
+
   revalidatePath("/today");
-
   return { ok: true };
 }

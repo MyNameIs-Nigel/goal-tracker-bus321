@@ -85,7 +85,6 @@ test("CV-02 Edit opens the editor with Save / Cancel; Save shows the new content
       key: "contract",
       bodyHtml: "<p>Five failures = <strong>consequence</strong></p>",
       updatedAt: "2026-09-19T03:30:00Z",
-      updatedByName: "Nigel Smith",
     },
   });
   render(<ContractView {...baseProps()} />);
@@ -123,7 +122,7 @@ test("CV-02 Edit opens the editor with Save / Cancel; Save shows the new content
   expect(
     within(contractSection()).queryByLabelText("Editor"),
   ).not.toBeInTheDocument();
-  expect(contractSection()).toHaveTextContent("Last updated Sep 18 by Nigel");
+  expect(contractSection()).toHaveTextContent("Last updated Sep 18");
 });
 
 test("CV-04 the action's size error is shown and the editor stays open", async () => {

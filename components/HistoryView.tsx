@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { formatMonthLong, formatMonthName } from "@/lib/dates";
+import { teamPaths } from "@/lib/paths";
 import type { DayStatus, Status } from "@/lib/status";
 import type { HistoryData } from "@/lib/view/history";
 
@@ -37,9 +38,19 @@ function plural(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
-/** HIST-01..08 — the month at a glance. A Server Component: links only. */
-export default function HistoryView({ data }: { data: HistoryData }) {
+/**
+ * HIST-01..08 — one team's month at a glance. A Server Component: links
+ * only. `teamId` is a teammate's team; without it, links are your own.
+ */
+export default function HistoryView({
+  data,
+  teamId = null,
+}: {
+  data: HistoryData;
+  teamId?: string | null;
+}) {
   const { nav } = data;
+  const paths = teamPaths(teamId);
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -51,18 +62,12 @@ export default function HistoryView({ data }: { data: HistoryData }) {
           className="flex items-center gap-3 text-sm font-medium text-muted"
         >
           {nav.prev && (
-            <Link
-              href={`/history?month=${nav.prev}`}
-              className="ui-hover-accent"
-            >
+            <Link href={paths.history(nav.prev)} className="ui-hover-accent">
               ← {formatMonthName(`${nav.prev}-01`)}
             </Link>
           )}
           {nav.next && (
-            <Link
-              href={`/history?month=${nav.next}`}
-              className="ui-hover-accent"
-            >
+            <Link href={paths.history(nav.next)} className="ui-hover-accent">
               {formatMonthName(`${nav.next}-01`)} →
             </Link>
           )}
@@ -80,7 +85,7 @@ export default function HistoryView({ data }: { data: HistoryData }) {
             cell ? (
               <Link
                 key={cell.date}
-                href={`/day/${cell.date}`}
+                href={paths.day(cell.date)}
                 aria-label={cell.label}
                 className={`ui-hover-outline flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg text-sm ${
                   cell.isToday ? "ring-2 ring-accent" : ""

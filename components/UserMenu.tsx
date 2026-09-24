@@ -6,22 +6,16 @@ import { useEffect, useId, useRef, useState } from "react";
 import ThemeSelector from "./ThemeSelector";
 
 import { signOut } from "@/lib/auth-client";
-import type { Role, SessionUser } from "@/lib/dal";
+import type { SessionUser } from "@/lib/dal";
 import { initials } from "@/lib/format";
 
-const ROLE_LABELS: Record<Role, string> = {
-  owner: "Owner",
-  partner: "Partner",
-  viewer: "Viewer",
-};
-
-/** AUTH-12 — avatar (or initials), name, email and role label; AUTH-06 sign-out. */
+/** AUTH-12 — avatar (or initials), name, email and team; AUTH-06 sign-out. */
 export default function UserMenu({
   name,
   email,
   image,
-  role,
-}: Pick<SessionUser, "name" | "email" | "image" | "role">) {
+  teamName,
+}: Pick<SessionUser, "name" | "email" | "image"> & { teamName: string }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const panelId = useId();
@@ -75,7 +69,7 @@ export default function UserMenu({
         >
           <p className="truncate text-sm font-medium">{name}</p>
           <p className="truncate text-xs text-muted">{email}</p>
-          <p className="mt-1 text-xs text-muted">{ROLE_LABELS[role]}</p>
+          <p className="mt-1 text-xs text-muted">{teamName}</p>
           <ThemeSelector />
           <button
             type="button"

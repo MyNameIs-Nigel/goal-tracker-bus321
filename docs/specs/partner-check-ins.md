@@ -76,7 +76,7 @@ Two Server Actions in `lib/actions/checkins.ts`, both starting with `requireUser
 
 ## UI
 
-- **Your teammates** (on `/today` only): one row per teammate — avatar, name (a link to their team), the teammate summary in muted text under the name, and on the right the one control: **"Check in"** (filled accent, ≥ 44px) or **"Checked ✓ <time>"** (accent text). After checking in, a small **"Add a note"** text button opens the note field for that row only. The heading carries the count: **"Your teammates · N of M checked"**.
+- **Your teammates** (on `/today` only): one row per teammate — avatar, name (a link to their team), the teammate summary in muted text under the name, and on the right the one control: **"Check in"** (filled accent, ≥ 44px) or **"Checked ✓ <time>"** (accent text). After checking in, a small **"Add a note"** text button opens the note field for that row only, focused and ready to type; saving or cancelling returns focus to that button. The heading carries the count: **"Your teammates · N of M checked"**.
 - **Checked on you** and **Partners**: one row per partner of the team shown — avatar, name, **"Checked ✓ <time>"** or **"Not yet"**, the note in muted text beneath. Read-only, except your own row on a teammate's page today.
 - Time is shown in Denver time with the `AM/PM` format; no seconds. Everyone is ordered by name.
 

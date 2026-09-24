@@ -4,9 +4,9 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db/client";
-import { documents, settings } from "@/db/schema";
+import { documents, teams } from "@/db/schema";
 import { now } from "@/lib/clock";
-import { ForbiddenError, requireUser } from "@/lib/dal";
+import { requireUser } from "@/lib/dal";
 import { compareDates } from "@/lib/dates";
 import type { ContractWindow, DocumentView } from "@/lib/queries/documents";
 import { sanitizeDocumentHtml } from "@/lib/sanitize";
@@ -20,18 +20,15 @@ export type SaveDocumentResult =
 export type SaveContractDatesResult =
   { ok: true; contract: ContractWindow } | { ok: false; error: string };
 
-async function requireOwnerCaller() {
-  const user = await requireUser();
-  if (user.role !== "owner") throw new ForbiddenError();
-  return user;
-}
-
-/** CV-02/03/04 — owner saves a document; stored HTML is always sanitized. */
+/**
+ * CV-02/03/04 — save one of the caller's own documents; stored HTML is always
+ * sanitized. No team id parameter: it can only ever write the caller's team (CV-09).
+ */
 export async function saveDocument(
   key: string,
   html: string,
 ): Promise<SaveDocumentResult> {
-  const user = await requireOwnerCaller();
+  const { teamId } = await requireUser();
   if (key !== "vision" && key !== "contract") {
     return { ok: false, error: "Unknown document." };
   }
@@ -44,11 +41,14 @@ export async function saveDocument(
     };
   }
 
-  const instant = now();
+  const updatedAt = now();
   const [row] = await db
-    .update(documents)
-    .set({ bodyHtml, updatedAt: instant, updatedBy: user.id })
-    .where(eq(documents.key, key))
+    .insert(documents)
+    .values({ teamId, key, bodyHtml, updatedAt })
+    .onConflictDoUpdate({
+      target: [documents.teamId, documents.key],
+      set: { bodyHtml, updatedAt },
+    })
     .returning();
 
   revalidatePath("/contract");
@@ -58,7 +58,6 @@ export async function saveDocument(
       key,
       bodyHtml: row.bodyHtml,
       updatedAt: row.updatedAt.toISOString(),
-      updatedByName: user.name,
     },
   };
 }
@@ -69,12 +68,12 @@ function parseDate(value: string): string | null | undefined {
   return isValidCalendarDate(trimmed) ? trimmed : undefined;
 }
 
-/** CV-07 — owner sets (or clears) the contract dates. */
+/** CV-07 — set (or clear) the caller's own contract dates. */
 export async function saveContractDates(
   start: string,
   end: string,
 ): Promise<SaveContractDatesResult> {
-  await requireOwnerCaller();
+  const { teamId } = await requireUser();
 
   const contractStart = parseDate(start);
   const contractEnd = parseDate(end);
@@ -90,9 +89,9 @@ export async function saveContractDates(
   }
 
   const [row] = await db
-    .update(settings)
+    .update(teams)
     .set({ contractStart, contractEnd, updatedAt: now() })
-    .where(eq(settings.id, 1))
+    .where(eq(teams.id, teamId))
     .returning();
 
   revalidatePath("/contract");

@@ -23,11 +23,15 @@ import {
   streakLabel,
   type ExceptionRecord,
   type GoalStatusView,
+  type ViewGoal,
 } from "@/lib/view/day";
 
 import ExceptionDialog from "@/components/ExceptionDialog";
-import PartnerCheckins from "@/components/PartnerCheckins";
+import QuickAddGoal from "@/components/QuickAddGoal";
+import TeamCheckins from "@/components/TeamCheckins";
+import TeammateList from "@/components/TeammateList";
 import type { DayPageData } from "@/lib/day-page";
+import { teamPaths } from "@/lib/paths";
 
 function statusText(goal: GoalStatusView): string {
   switch (goal.status) {
@@ -49,7 +53,7 @@ function statusText(goal: GoalStatusView): string {
 function GoalRow({
   goal,
   canEdit,
-  isOwner,
+  isOwn,
   date,
   dueLabel,
   onToggled,
@@ -57,7 +61,7 @@ function GoalRow({
 }: {
   goal: GoalStatusView;
   canEdit: boolean;
-  isOwner: boolean;
+  isOwn: boolean;
   date: string;
   dueLabel?: string;
   onToggled: (id: string, completed: boolean) => void;
@@ -129,7 +133,7 @@ function GoalRow({
     "flex min-h-12 w-full items-center gap-3 rounded-xl border border-border p-3 text-left";
 
   const canRemoveException =
-    isOwner && goal.status === "excused" && goal.excusedExceptionId;
+    isOwn && goal.status === "excused" && goal.excusedExceptionId;
 
   return (
     <div className="flex flex-col gap-1">
@@ -159,8 +163,12 @@ function GoalRow({
   );
 }
 
-/** DT-01..15 — the shared page for /today and /day/[date]. */
+/**
+ * DT-01..17 — one team's day: your own (/today, /day/[date]) or a teammate's
+ * (/team/[id], /team/[id]/day/[date]), read-only for them.
+ */
 export default function DayView(props: DayPageData) {
+  const [goals, setGoals] = useState<ViewGoal[]>(props.goals);
   const [completions, setCompletions] = useState<Completion[]>(
     props.completions,
   );
@@ -170,7 +178,7 @@ export default function DayView(props: DayPageData) {
   const [exceptionDialogOpen, setExceptionDialogOpen] = useState(false);
 
   function handleToggled(id: string, completed: boolean) {
-    const goal = props.goals.find((g) => g.id === id);
+    const goal = goals.find((g) => g.id === id);
     if (!goal) return;
     const periodStart = periodFor(goal.cadence, props.date).start;
 
@@ -193,15 +201,15 @@ export default function DayView(props: DayPageData) {
     setExceptions((prev) => prev.filter((exception) => exception.id !== id));
   }
 
-  const canEdit =
-    props.role === "owner" && compareDates(props.date, props.todayDate) <= 0;
+  const paths = teamPaths(props.isOwn ? null : props.team.id);
+  const canEdit = props.isOwn && compareDates(props.date, props.todayDate) <= 0;
 
   const groups = useMemo(
     () =>
       buildDayGroups({
         date: props.date,
         today: props.todayDate,
-        goals: props.goals,
+        goals,
         contract: props.contract,
         completions,
         exceptions,
@@ -209,7 +217,7 @@ export default function DayView(props: DayPageData) {
     [
       props.date,
       props.todayDate,
-      props.goals,
+      goals,
       props.contract,
       completions,
       exceptions,
@@ -220,12 +228,12 @@ export default function DayView(props: DayPageData) {
     () =>
       computeStreak({
         today: props.todayDate,
-        dailyGoals: props.goals.filter((g) => g.cadence === "daily"),
+        dailyGoals: goals.filter((g) => g.cadence === "daily"),
         contract: props.contract,
         completions,
         exceptions,
       }),
-    [props.todayDate, props.goals, props.contract, completions, exceptions],
+    [props.todayDate, goals, props.contract, completions, exceptions],
   );
 
   const failures = useMemo(
@@ -233,12 +241,12 @@ export default function DayView(props: DayPageData) {
       failuresInMonth({
         month: monthKey(props.todayDate),
         today: props.todayDate,
-        goals: props.goals,
+        goals,
         contract: props.contract,
         completions,
         exceptions,
       }),
-    [props.todayDate, props.goals, props.contract, completions, exceptions],
+    [props.todayDate, goals, props.contract, completions, exceptions],
   );
 
   const hasAnyGoals =
@@ -255,22 +263,25 @@ export default function DayView(props: DayPageData) {
           <h1 className="text-2xl font-semibold tracking-tight">
             {formatWeekdayLong(props.date)}
           </h1>
-          <nav className="flex items-center gap-3 text-sm font-medium text-muted">
-            <Link href={`/day/${prevDate}`} className="ui-hover-accent">
+          <nav
+            aria-label="Days"
+            className="flex items-center gap-3 text-sm font-medium text-muted"
+          >
+            <Link href={paths.day(prevDate)} className="ui-hover-accent">
               ← {formatMonthShort(prevDate)}
             </Link>
-            <Link href="/today" className="ui-hover-accent">
+            <Link href={paths.today} className="ui-hover-accent">
               Today
             </Link>
             {nextDate && (
-              <Link href={`/day/${nextDate}`} className="ui-hover-accent">
+              <Link href={paths.day(nextDate)} className="ui-hover-accent">
                 {formatMonthShort(nextDate)} →
               </Link>
             )}
           </nav>
         </div>
         {contractLabel && <p className="text-sm text-muted">{contractLabel}</p>}
-        {props.date !== props.todayDate && (
+        {props.isOwn && props.date !== props.todayDate && (
           <p className="text-sm font-medium text-accent">
             {props.date < props.todayDate
               ? "Editing a past day"
@@ -283,24 +294,19 @@ export default function DayView(props: DayPageData) {
         {streakLabel(streak)} · {failuresLabel(failures, props.todayDate)}
       </p>
 
-      {!hasAnyGoals && (
-        <p className="text-muted">
-          {props.role === "owner" ? (
-            <>
-              No goals yet.{" "}
-              <Link
-                href="/goals"
-                className="ui-hover-underline font-medium text-accent"
-              >
-                Add one
-              </Link>
-              .
-            </>
-          ) : (
-            `${props.ownerFirstName} hasn't added goals yet.`
-          )}
-        </p>
-      )}
+      {!hasAnyGoals &&
+        (props.isOwn ? (
+          <div className="flex flex-col gap-3">
+            <p className="text-muted">No goals yet.</p>
+            <QuickAddGoal
+              onAdded={(goal) => setGoals((prev) => [...prev, goal])}
+            />
+          </div>
+        ) : (
+          <p className="text-muted">
+            {`${props.team.firstName} hasn't added goals yet.`}
+          </p>
+        ))}
 
       {groups.daily.length > 0 && (
         <section className="flex flex-col gap-2">
@@ -316,7 +322,7 @@ export default function DayView(props: DayPageData) {
                 key={goal.id}
                 goal={goal}
                 canEdit={canEdit}
-                isOwner={props.role === "owner"}
+                isOwn={props.isOwn}
                 date={props.date}
                 onToggled={handleToggled}
                 onExceptionRemoved={handleExceptionRemoved}
@@ -337,7 +343,7 @@ export default function DayView(props: DayPageData) {
                 key={goal.id}
                 goal={goal}
                 canEdit={canEdit}
-                isOwner={props.role === "owner"}
+                isOwn={props.isOwn}
                 date={props.date}
                 dueLabel={formatWeekdayShort(goal.periodEnd)}
                 onToggled={handleToggled}
@@ -359,7 +365,7 @@ export default function DayView(props: DayPageData) {
                 key={goal.id}
                 goal={goal}
                 canEdit={canEdit}
-                isOwner={props.role === "owner"}
+                isOwn={props.isOwn}
                 date={props.date}
                 dueLabel={formatWeekdayShort(goal.periodEnd)}
                 onToggled={handleToggled}
@@ -370,11 +376,11 @@ export default function DayView(props: DayPageData) {
         </section>
       )}
 
-      {props.role === "owner" &&
+      {props.isOwn &&
         (exceptionDialogOpen ? (
           <ExceptionDialog
             date={props.date}
-            goals={props.goals}
+            goals={goals}
             onCancel={() => setExceptionDialogOpen(false)}
             onCreated={handleExceptionCreated}
           />
@@ -388,10 +394,20 @@ export default function DayView(props: DayPageData) {
           </button>
         ))}
 
-      <PartnerCheckins
+      {props.teammates && (
+        <TeammateList
+          date={props.date}
+          teammates={props.teammates}
+          shareUrl={props.shareUrl}
+        />
+      )}
+
+      <TeamCheckins
+        heading={props.isOwn ? "Checked on you" : "Partners"}
+        teamId={props.team.id}
+        teamFirstName={props.team.firstName}
         date={props.date}
         todayDate={props.todayDate}
-        role={props.role}
         currentUserId={props.currentUserId}
         partners={props.partners}
         checkins={props.checkins}

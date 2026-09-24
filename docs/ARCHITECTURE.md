@@ -46,12 +46,14 @@ lib/
   paths.ts                     a team's page URLs (own routes vs. /team/<id>) — pure
   view/                        pure view-models: day, teammates, history, contract
   queries/                     reads, always scoped to a team
+  team-page.ts                 which team a page shows: yours, or a teammate's (404 / redirect-to-own)
+  day-page.ts · contract-page.ts · history-page.ts   one loader per page type, shared by your routes and team routes
   actions/                     Server Actions (one file per feature), each calls requireUser first
 db/
   schema.ts                    Drizzle schema (source of truth for tables)
   client.ts                    Drizzle client (`node-postgres` driver, works against Neon and local Postgres alike)
   migrations/                  generated SQL, committed
-  seed.e2e.ts                  fake students (+ optional demo data) for tests and local use
+  seed.e2e.ts · demo.e2e.ts    fake students, and the optional demo class, for tests and local use
 proxy.ts                       optimistic redirects only (Next 16's renamed middleware)
 docker-compose.yml             local Postgres for dev and E2E (same image as CI)
 vercel.json                    framework + build command (migrate, then build) + region

@@ -2,20 +2,13 @@ import GoalList from "@/components/GoalList";
 import { today } from "@/lib/clock";
 import { requireUser } from "@/lib/dal";
 import { listGoalsWithMeta } from "@/lib/queries/goals";
-import { getOwnerFirstName } from "@/lib/queries/owner";
 
+/** docs/specs/goals.md — always your own team's goals (GOAL-11). */
 export default async function GoalsPage() {
-  const user = await requireUser();
-  const [goals, ownerFirstName] = await Promise.all([
-    listGoalsWithMeta(),
-    getOwnerFirstName(),
-  ]);
-
+  const { teamId } = await requireUser();
   return (
     <GoalList
-      initialGoals={goals}
-      role={user.role}
-      ownerFirstName={ownerFirstName}
+      initialGoals={await listGoalsWithMeta(teamId)}
       defaultStartsOn={today()}
     />
   );

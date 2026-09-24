@@ -1,22 +1,19 @@
 /**
  * Better Auth instance (docs/ARCHITECTURE.md § Authentication). Google is the
  * only social provider, registered only when its two env vars are present so
- * preview/CI builds don't need them. `role` is bootstrapped to `owner` for
- * `OWNER_EMAIL` on account creation, and re-asserted on every sign-in so a
- * bad row in the database can never lock the owner out (docs/adr/0001).
+ * preview/CI builds don't need them. There are no roles: every student owns a
+ * team, created by the Data Access Layer on first use (ADR-0005).
  */
 import "server-only";
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { eq } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import * as schema from "@/db/schema";
 
 import { isE2eEnabled } from "./e2e";
-import { isOwnerEmail } from "./owner";
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -48,59 +45,9 @@ export const auth = betterAuth({
   ...(isE2eEnabled()
     ? { emailAndPassword: { enabled: true, autoSignIn: false } }
     : {}),
-  user: {
-    additionalFields: {
-      role: {
-        type: "string",
-        required: true,
-        defaultValue: "viewer",
-        // Never client-settable. Only the owner-bootstrap hooks below and
-        // lib/actions/people.ts's `setRole` (owner-only) ever write it.
-        input: false,
-      },
-    },
-  },
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 24, // refreshed on activity
-  },
-  databaseHooks: {
-    user: {
-      create: {
-        before: async (user) => {
-          if (isOwnerEmail(user.email)) {
-            return { data: { ...user, role: "owner" } };
-          }
-        },
-      },
-    },
-    session: {
-      create: {
-        // Re-assert the owner role on every sign-in (AUTH-04): if the row
-        // has drifted, it's corrected before the session exists.
-        before: async (session) => {
-          const [signedInUser] = await db
-            .select({
-              id: schema.user.id,
-              email: schema.user.email,
-              role: schema.user.role,
-            })
-            .from(schema.user)
-            .where(eq(schema.user.id, session.userId));
-
-          if (
-            signedInUser &&
-            isOwnerEmail(signedInUser.email) &&
-            signedInUser.role !== "owner"
-          ) {
-            await db
-              .update(schema.user)
-              .set({ role: "owner" })
-              .where(eq(schema.user.id, signedInUser.id));
-          }
-        },
-      },
-    },
   },
   plugins: [nextCookies()],
 });

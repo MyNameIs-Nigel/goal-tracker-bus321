@@ -1,13 +1,13 @@
 /**
- * Reads for `documents` and `settings` (docs/DATA_MODEL.md § documents,
- * § settings) as the /contract page shows them.
+ * Reads for a team's `documents` (docs/DATA_MODEL.md § documents) as the
+ * contract pages show them. A missing row is an empty, never-saved document.
  */
 import "server-only";
 
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db/client";
-import { documents, settings, user } from "@/db/schema";
+import { documents } from "@/db/schema";
 
 export type DocumentKey = "vision" | "contract";
 
@@ -16,7 +16,6 @@ export type DocumentView = {
   bodyHtml: string;
   /** ISO instant of the last save; null until the owner has saved once. */
   updatedAt: string | null;
-  updatedByName: string | null;
 };
 
 export type ContractWindow = {
@@ -24,25 +23,18 @@ export type ContractWindow = {
   contractEnd: string | null;
 };
 
-export async function getDocuments(): Promise<
-  Record<DocumentKey, DocumentView>
-> {
+export async function getDocuments(
+  teamId: string,
+): Promise<Record<DocumentKey, DocumentView>> {
   const rows = await db
-    .select({
-      key: documents.key,
-      bodyHtml: documents.bodyHtml,
-      updatedAt: documents.updatedAt,
-      updatedBy: documents.updatedBy,
-      updatedByName: user.name,
-    })
+    .select()
     .from(documents)
-    .leftJoin(user, eq(documents.updatedBy, user.id));
+    .where(eq(documents.teamId, teamId));
 
   const empty = (key: DocumentKey): DocumentView => ({
     key,
     bodyHtml: "",
     updatedAt: null,
-    updatedByName: null,
   });
   const result = { vision: empty("vision"), contract: empty("contract") };
   for (const row of rows) {
@@ -50,17 +42,8 @@ export async function getDocuments(): Promise<
     result[row.key] = {
       key: row.key,
       bodyHtml: row.bodyHtml,
-      updatedAt: row.updatedBy ? row.updatedAt.toISOString() : null,
-      updatedByName: row.updatedBy ? row.updatedByName : null,
+      updatedAt: row.updatedAt.toISOString(),
     };
   }
   return result;
-}
-
-export async function getContractWindow(): Promise<ContractWindow> {
-  const [row] = await db.select().from(settings).limit(1);
-  return {
-    contractStart: row?.contractStart ?? null,
-    contractEnd: row?.contractEnd ?? null,
-  };
 }

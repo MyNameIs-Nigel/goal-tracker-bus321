@@ -267,6 +267,7 @@ test("DT-15 your own empty day offers a one-line first goal", async () => {
     goal: {
       ...dailyGoal,
       id: "new-goal",
+      teamId: "team-avery",
       startsOn: "2026-09-23",
       description: null,
       createdAt: new Date(),
