@@ -4,11 +4,12 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db/client";
-import { completions, goals } from "@/db/schema";
+import { completions } from "@/db/schema";
 import { today } from "@/lib/clock";
-import { ForbiddenError, requireUser } from "@/lib/dal";
+import { requireUser } from "@/lib/dal";
 import { compareDates } from "@/lib/dates";
-import { periodFor, type Cadence } from "@/lib/periods";
+import { periodFor } from "@/lib/periods";
+import { getGoal } from "@/lib/queries/goals";
 
 export type ToggleCompletionResult =
   { ok: true; completed: boolean } | { ok: false; error: string };
@@ -19,16 +20,15 @@ function revalidateDayPages(date: string) {
 }
 
 /**
- * DT-03/04 — toggle a goal's completion for the period containing `date`.
- * DT-05 — the owner may do this for any date ≤ today (edit the past).
- * DT-06 — a future date is rejected.
+ * DT-03/04 — toggle one of your own goals for the period containing `date`.
+ * DT-05 — any date ≤ today (edit the past). DT-06 — a future date is rejected.
+ * TEAM-06 — a teammate's goal reads as missing.
  */
 export async function toggleCompletion(
   goalId: string,
   date: string,
 ): Promise<ToggleCompletionResult> {
-  const user = await requireUser();
-  if (user.role !== "owner") throw new ForbiddenError();
+  const { teamId } = await requireUser();
 
   if (compareDates(date, today()) > 0) {
     return {
@@ -37,10 +37,10 @@ export async function toggleCompletion(
     };
   }
 
-  const [goal] = await db.select().from(goals).where(eq(goals.id, goalId));
+  const goal = await getGoal(teamId, goalId);
   if (!goal) return { ok: false, error: "Goal not found." };
 
-  const period = periodFor(goal.cadence as Cadence, date);
+  const period = periodFor(goal.cadence, date);
   const where = and(
     eq(completions.goalId, goalId),
     eq(completions.periodStart, period.start),

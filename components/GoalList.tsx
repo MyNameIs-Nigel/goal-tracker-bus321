@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import GoalForm from "@/components/GoalForm";
 import { archiveGoal, moveGoal, unarchiveGoal } from "@/lib/actions/goals";
-import type { Role } from "@/lib/dal";
 import type { Cadence, GoalWithMeta } from "@/lib/queries/goals";
 
 const SECTIONS: { cadence: Cadence; label: string }[] = [
@@ -13,22 +12,17 @@ const SECTIONS: { cadence: Cadence; label: string }[] = [
   { cadence: "monthly", label: "Monthly" },
 ];
 
-/** GOAL-01..12 — the goal list, add/edit, archive/restore, reorder, delete. */
+/** GOAL-01..12 — your goal list, add/edit, archive/restore, reorder, delete. */
 export default function GoalList({
   initialGoals,
-  role,
-  ownerFirstName,
   defaultStartsOn,
 }: {
   initialGoals: GoalWithMeta[];
-  role: Role;
-  ownerFirstName: string;
   defaultStartsOn: string;
 }) {
   const [goals, setGoals] = useState(initialGoals);
   const [addFormOpen, setAddFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const isOwner = role === "owner";
 
   function upsert(goal: GoalWithMeta) {
     setGoals((prev) =>
@@ -75,7 +69,7 @@ export default function GoalList({
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Goals</h1>
-        {isOwner && !addFormOpen && (
+        {!addFormOpen && (
           <button
             type="button"
             onClick={() => setAddFormOpen(true)}
@@ -87,11 +81,7 @@ export default function GoalList({
       </div>
 
       {goals.length === 0 && !addFormOpen && (
-        <p className="text-muted">
-          {isOwner
-            ? "No goals yet."
-            : `${ownerFirstName} hasn't added goals yet.`}
-        </p>
+        <p className="text-muted">No goals yet.</p>
       )}
 
       {addFormOpen && (
@@ -144,40 +134,38 @@ export default function GoalList({
                         <p className="text-sm text-muted">{goal.description}</p>
                       )}
                     </div>
-                    {isOwner && (
-                      <div className="flex flex-wrap gap-3 text-sm font-medium text-muted">
-                        <button
-                          type="button"
-                          onClick={() => setEditingId(goal.id)}
-                          className="ui-hover-accent"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          disabled={index === 0}
-                          onClick={() => handleMove(goal, "up")}
-                          className="ui-hover-accent disabled:opacity-40"
-                        >
-                          Move up
-                        </button>
-                        <button
-                          type="button"
-                          disabled={index === list.length - 1}
-                          onClick={() => handleMove(goal, "down")}
-                          className="ui-hover-accent disabled:opacity-40"
-                        >
-                          Move down
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleArchive(goal)}
-                          className="ui-hover-accent"
-                        >
-                          Archive
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex flex-wrap gap-3 text-sm font-medium text-muted">
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(goal.id)}
+                        className="ui-hover-accent"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        disabled={index === 0}
+                        onClick={() => handleMove(goal, "up")}
+                        className="ui-hover-accent disabled:opacity-40"
+                      >
+                        Move up
+                      </button>
+                      <button
+                        type="button"
+                        disabled={index === list.length - 1}
+                        onClick={() => handleMove(goal, "down")}
+                        className="ui-hover-accent disabled:opacity-40"
+                      >
+                        Move down
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleArchive(goal)}
+                        className="ui-hover-accent"
+                      >
+                        Archive
+                      </button>
+                    </div>
                   </div>
                 ),
               )}
@@ -219,24 +207,22 @@ export default function GoalList({
                       <p className="text-sm text-muted">{goal.description}</p>
                     )}
                   </div>
-                  {isOwner && (
-                    <div className="flex gap-3 text-sm font-medium text-muted">
-                      <button
-                        type="button"
-                        onClick={() => setEditingId(goal.id)}
-                        className="ui-hover-accent"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleUnarchive(goal)}
-                        className="ui-hover-accent"
-                      >
-                        Restore
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex gap-3 text-sm font-medium text-muted">
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(goal.id)}
+                      className="ui-hover-accent"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleUnarchive(goal)}
+                      className="ui-hover-accent"
+                    >
+                      Restore
+                    </button>
+                  </div>
                 </div>
               ),
             )}

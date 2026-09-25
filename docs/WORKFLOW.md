@@ -50,7 +50,7 @@ Nigel's stated goal is *as little human involvement as possible*. By adopting th
 - **Merge its own PR** once every required check is green and the PR is within the active phase's specs. This deploys to production — that is the intended pipeline.
 - Re-run flaky jobs; open a follow-up `fix/` PR when production verification finds a problem.
 - Set **non-secret** Vercel environment variables and repository settings that the docs specify (labels, merge strategy, branch protection, Dependabot).
-- Run database migrations that are additive (new tables/columns/indexes).
+- Run database migrations that are additive (new tables/columns/indexes). The one destructive migration (`0001_teams`) was authorized by Nigel in [ADR-0005](adr/0005-every-student-owns-a-team.md).
 - Update `docs/PHASES.md` status and write new ADRs for decisions it makes.
 
 Claude **asks first** for:
@@ -58,7 +58,7 @@ Claude **asks first** for:
 - Starting a new phase, or work outside the active phase.
 - Anything destructive on production data (dropping columns, deleting rows, resetting the database).
 - Changing repo visibility, spending money, buying a domain, or accepting terms of service.
-- Sending anything to partners or classmates.
+- Sending anything to classmates.
 - Reversing a decision recorded in an accepted ADR (it writes a new ADR and asks).
 
 Claude **never**:
@@ -70,5 +70,5 @@ Claude **never**:
 ## Definition of done (per feature)
 
 - Spec is current; every scenario has a named test; all tests green in CI.
-- Deployed to production and verified there by Claude with the built-in browser at phone and desktop widths.
+- Deployed to production; public routes checked there. Signed-in behavior is verified with fake students in CI and locally at phone and desktop widths — Claude never signs in to production with a real account, and no real student's data is used for testing ([ADR-0005](adr/0005-every-student-owns-a-team.md) T6).
 - `PHASES.md` exit criteria ticked where applicable.

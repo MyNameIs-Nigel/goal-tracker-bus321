@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
  * Fills and saves the /goals "Add goal" form (docs/specs/goals.md), then
@@ -37,7 +37,39 @@ export async function addGoal(
 }
 
 /** Reseeds and pins lib/clock.ts to `now` (docs/TESTING.md § Clock). */
-export async function resetAt(page: Page, now: string) {
-  const response = await page.request.post("/api/e2e/reset", { data: { now } });
+export async function resetAt(
+  page: Page,
+  now: string,
+  { demo = false }: { demo?: boolean } = {},
+) {
+  const response = await page.request.post("/api/e2e/reset", {
+    data: { now, demo },
+  });
   if (!response.ok()) throw new Error(`reset failed: ${response.status()}`);
+}
+
+/** Reseeds with the fake demo class, relative to the real clock. */
+export async function resetWithDemo(page: Page) {
+  const response = await page.request.post("/api/e2e/reset", {
+    data: { demo: true },
+  });
+  if (!response.ok()) throw new Error(`reset failed: ${response.status()}`);
+}
+
+/** A section of a page, by its heading (every section is aria-labelledby). */
+export function region(page: Page, name: string): Locator {
+  return page.getByRole("region", { name, exact: true });
+}
+
+/** One teammate's row in `/today`'s "Your teammates". */
+export function teammateRow(page: Page, name: string): Locator {
+  return region(page, "Your teammates")
+    .getByRole("listitem")
+    .filter({ hasText: name });
+}
+
+/** Opens the user menu and returns the profile panel. */
+export async function openProfile(page: Page): Promise<Locator> {
+  await page.getByRole("button", { name: "User menu" }).click();
+  return page.getByRole("region", { name: "Your profile" });
 }

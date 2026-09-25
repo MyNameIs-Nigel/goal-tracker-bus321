@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-import type { Role } from "@/lib/dal";
-
 const LINKS = [
   { href: "/today", label: "Today" },
   { href: "/goals", label: "Goals" },
@@ -9,8 +7,8 @@ const LINKS = [
   { href: "/history", label: "History" },
 ] as const;
 
-/** ROLE-08 — People shows only for the owner; everyone else sees the four. */
-export default function Nav({ role }: { role: Role }) {
+/** TEAM-08 — the same four links for every student, all to their own team. */
+export default function Nav() {
   return (
     <nav
       aria-label="Primary"
@@ -25,11 +23,6 @@ export default function Nav({ role }: { role: Role }) {
           {link.label}
         </Link>
       ))}
-      {role === "owner" && (
-        <Link href="/people" className="text-foreground/80 ui-hover-accent">
-          People
-        </Link>
-      )}
     </nav>
   );
 }

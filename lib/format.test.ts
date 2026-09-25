@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { firstName, formatTime } from "./format";
+import { firstName, formatTime, teamName } from "./format";
 
 test("firstName takes the first word of a display name", () => {
   expect(firstName("Nigel Smith")).toBe("Nigel");
@@ -12,6 +12,11 @@ test("firstName returns a single-word name unchanged", () => {
 
 test("firstName trims surrounding whitespace", () => {
   expect(firstName("  Nigel Smith  ")).toBe("Nigel");
+});
+
+test("TEAM-01 a team is named for its owner's first name", () => {
+  expect(teamName("Avery Adams")).toBe("Team Avery");
+  expect(teamName("  Nigel  ")).toBe("Team Nigel");
 });
 
 test("PCI-01 formatTime renders an instant as Denver AM/PM time, no seconds", () => {

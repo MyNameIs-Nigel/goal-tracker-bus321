@@ -2,51 +2,54 @@ import { beforeEach, expect, test, vi } from "vitest";
 
 const requireUserMock = vi.fn();
 const nowMock = vi.fn();
+
+const insertValuesMock = vi.fn();
+const onConflictMock = vi.fn();
+const insertReturningMock = vi.fn();
 const updateSetMock = vi.fn();
 const updateWhereMock = vi.fn();
 const updateReturningMock = vi.fn();
 
-class ForbiddenError extends Error {
-  constructor() {
-    super("Forbidden");
-    this.name = "Forbidden";
-  }
-}
-
-vi.mock("@/lib/dal", () => ({ requireUser: requireUserMock, ForbiddenError }));
+vi.mock("@/lib/dal", () => ({ requireUser: requireUserMock }));
 vi.mock("@/lib/clock", () => ({ now: nowMock, today: () => "2026-09-18" }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/db/client", () => ({
-  db: { update: () => ({ set: updateSetMock }) },
+  db: {
+    insert: () => ({ values: insertValuesMock }),
+    update: () => ({ set: updateSetMock }),
+  },
 }));
 
 const { saveContractDates, saveDocument } = await import("./documents");
 
-const owner = {
-  id: "owner-1",
-  role: "owner" as const,
-  name: "Nigel Smith",
-};
+const avery = { id: "user-avery", teamId: "team-avery", name: "Avery Adams" };
 const NOW = new Date("2026-09-19T03:30:00Z");
 
 beforeEach(() => {
-  requireUserMock.mockReset().mockResolvedValue(owner);
+  requireUserMock.mockReset().mockResolvedValue(avery);
   nowMock.mockReset().mockReturnValue(NOW);
+  insertValuesMock
+    .mockReset()
+    .mockReturnValue({ onConflictDoUpdate: onConflictMock });
+  onConflictMock
+    .mockReset()
+    .mockReturnValue({ returning: insertReturningMock });
+  insertReturningMock.mockReset().mockImplementation(async () => [
+    {
+      teamId: "team-avery",
+      key: insertValuesMock.mock.calls.at(-1)?.[0]?.key ?? "contract",
+      bodyHtml: insertValuesMock.mock.calls.at(-1)?.[0]?.bodyHtml ?? "",
+      updatedAt: NOW,
+    },
+  ]);
   updateSetMock.mockReset().mockReturnValue({ where: updateWhereMock });
   updateWhereMock.mockReset().mockReturnValue({
     returning: updateReturningMock,
   });
-  updateReturningMock.mockReset().mockImplementation(async () => [
-    {
-      key: "contract",
-      bodyHtml: updateSetMock.mock.calls.at(-1)?.[0]?.bodyHtml ?? "",
-      updatedAt: NOW,
-      updatedBy: "owner-1",
-    },
-  ]);
+  updateReturningMock.mockReset();
 });
 
-test("CV-02 the owner saves a document; updated_at and updated_by advance", async () => {
+test("CV-02 saving a document upserts it on the caller's own team; updated_at advances", async () => {
   const result = await saveDocument(
     "contract",
     "<p>Hello <strong>bold</strong></p>",
@@ -57,14 +60,19 @@ test("CV-02 the owner saves a document; updated_at and updated_by advance", asyn
       key: "contract",
       bodyHtml: "<p>Hello <strong>bold</strong></p>",
       updatedAt: NOW.toISOString(),
-      updatedByName: "Nigel Smith",
     },
   });
-  expect(updateSetMock).toHaveBeenCalledWith({
+  expect(insertValuesMock).toHaveBeenCalledWith({
+    teamId: "team-avery",
+    key: "contract",
     bodyHtml: "<p>Hello <strong>bold</strong></p>",
     updatedAt: NOW,
-    updatedBy: "owner-1",
   });
+  expect(onConflictMock).toHaveBeenCalledWith(
+    expect.objectContaining({
+      set: { bodyHtml: "<p>Hello <strong>bold</strong></p>", updatedAt: NOW },
+    }),
+  );
 });
 
 test("CV-03 what is stored is the sanitized HTML, even when the action is called directly", async () => {
@@ -72,7 +80,7 @@ test("CV-03 what is stored is the sanitized HTML, even when the action is called
     "vision",
     '<p>Hi</p><script>alert(1)</script><a href="javascript:x" onclick="y">bad</a><a href="https://ok.example">ok</a>',
   );
-  const stored = updateSetMock.mock.calls[0][0].bodyHtml as string;
+  const stored = insertValuesMock.mock.calls[0][0].bodyHtml as string;
   expect(stored).toContain("<p>Hi</p>");
   expect(stored).not.toContain("<script");
   expect(stored).not.toContain("onclick");
@@ -88,18 +96,22 @@ test("CV-04 over 20,000 characters is rejected and nothing is written", async ()
     ok: false,
     error: "This is too long — keep it under 20,000 characters",
   });
-  expect(updateSetMock).not.toHaveBeenCalled();
+  expect(insertValuesMock).not.toHaveBeenCalled();
 });
 
 test("saveDocument rejects an unknown key", async () => {
   const result = await saveDocument("other", "<p>x</p>");
   expect(result).toEqual({ ok: false, error: "Unknown document." });
-  expect(updateSetMock).not.toHaveBeenCalled();
+  expect(insertValuesMock).not.toHaveBeenCalled();
 });
 
-test("CV-07 the owner sets the contract dates", async () => {
+test("CV-07 sets the contract dates on the caller's team", async () => {
   updateReturningMock.mockResolvedValue([
-    { id: 1, contractStart: "2026-09-19", contractEnd: "2026-12-18" },
+    {
+      id: "team-avery",
+      contractStart: "2026-09-19",
+      contractEnd: "2026-12-18",
+    },
   ]);
   const result = await saveContractDates("2026-09-19", "2026-12-18");
   expect(result).toEqual({
@@ -124,7 +136,7 @@ test("CV-07 end before start is rejected and nothing is written", async () => {
 
 test("CV-07 empty dates clear the value; malformed dates are rejected", async () => {
   updateReturningMock.mockResolvedValue([
-    { id: 1, contractStart: null, contractEnd: null },
+    { id: "team-avery", contractStart: null, contractEnd: null },
   ]);
   await expect(saveContractDates("", "")).resolves.toEqual({
     ok: true,
@@ -136,15 +148,16 @@ test("CV-07 empty dates clear the value; malformed dates are rejected", async ()
   });
 });
 
-test("CV-09 / ROLE-03 a partner or viewer invoking either save is rejected with Forbidden", async () => {
-  for (const role of ["partner", "viewer"] as const) {
-    requireUserMock.mockResolvedValue({ ...owner, role });
-    await expect(saveDocument("vision", "<p>x</p>")).rejects.toThrow(
-      "Forbidden",
-    );
-    await expect(saveContractDates("2026-09-19", "")).rejects.toThrow(
-      "Forbidden",
-    );
-  }
-  expect(updateSetMock).not.toHaveBeenCalled();
+test("CV-09 / TEAM-06 the saves take no team id: they always write the caller's own team", async () => {
+  requireUserMock.mockResolvedValue({
+    id: "user-blake",
+    teamId: "team-blake",
+    name: "Blake Brown",
+  });
+  await saveDocument("vision", "<p>x</p>");
+  expect(insertValuesMock).toHaveBeenCalledWith(
+    expect.objectContaining({ teamId: "team-blake" }),
+  );
+  expect(saveDocument.length).toBe(2);
+  expect(saveContractDates.length).toBe(2);
 });

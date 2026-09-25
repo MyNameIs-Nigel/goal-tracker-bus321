@@ -13,6 +13,7 @@ const { createGoal, updateGoal, deleteGoal } =
 
 const goal = {
   id: "goal-1",
+  teamId: "team-avery",
   title: "Read 20 pages",
   description: "Any book, before bed",
   cadence: "daily" as const,

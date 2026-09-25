@@ -13,7 +13,7 @@ All live in `.github/workflows/`. Every job runs on `ubuntu-latest`, Node from `
 | `lint` | `npm run lint` · `npm run format:check` | ESLint (Next config) + Prettier. Prettier owns code and config; `*.md` is in `.prettierignore` — the docs are prose and the source of truth, and reflowed tables would bury a one-word edit in a twenty-line diff |
 | `typecheck` | `npm run typecheck` (`next typegen && tsc --noEmit`) | `next typegen` writes the route-aware globals (`LayoutProps`, `PageProps`, `RouteContext`) into `.next/types`; without it `tsc` fails on a file that has never been built |
 | `unit` | `npm test` (`vitest run`) | uploads coverage as an artifact; no threshold gate in v1 |
-| `e2e` | migrate → `npm run build` → `npx playwright test` | Postgres 17 **service container**; env: `DATABASE_URL` (container), `E2E_AUTH=1`, `E2E_FIXED_NOW` unset, `BETTER_AUTH_SECRET=ci-only-not-secret`, `BETTER_AUTH_URL=http://localhost:3000`, `OWNER_EMAIL=owner@e2e.local`. `npm run db:migrate` runs Drizzle Kit's migrator against the container; there's no separate seed step — each test seeds itself via `POST /api/e2e/reset` (`e2e/fixtures.ts`'s `page` fixture, docs/TESTING.md § E2E setup). Installs `chromium` with `--with-deps`. Uploads the Playwright report on failure. |
+| `e2e` | migrate → `npm run build` → `npx playwright test` | Postgres 17 **service container**; env: `DATABASE_URL` (container), `E2E_AUTH=1`, `E2E_FIXED_NOW` unset, `BETTER_AUTH_SECRET=ci-only-not-secret`, `BETTER_AUTH_URL=http://localhost:3000`. `npm run db:migrate` runs Drizzle Kit's migrator against the container; there's no separate seed step — each test seeds itself via `POST /api/e2e/reset` (`e2e/fixtures.ts`'s `page` fixture, docs/TESTING.md § E2E setup). Installs `chromium` with `--with-deps`. Uploads the Playwright report on failure. |
 | `build` | `npm run build` | caches `~/.npm` and `.next/cache` with the key from the Next.js CI caching guide (`hashFiles(package-lock.json)` + source hash, restore-key on lockfile alone) |
 | `audit` | `npm audit --audit-level=high` | `continue-on-error: true` — informational |
 
@@ -59,7 +59,7 @@ Dependabot PRs still need every `ci.yml` job green. With branch protection + aut
 ## Deploys (Vercel)
 
 - **Production**: every push to `main`. Domain `bus321.nigel-smith.dev`; the `*.vercel.app` alias redirects to it (Vercel domain setting, after H6).
-- **Preview**: every PR. The Vercel GitHub app comments the URL on the PR and posts a status check. Preview environment has `E2E_AUTH=1`, so the three test sign-in buttons work there for manual review (Vercel's deployment protection keeps previews private to Nigel's account). Preview has **no database** — [ADR-0004](adr/0004-preview-has-no-database.md) — so any page that queries Postgres errors on a preview URL; Preview's job is just to prove the build succeeds and clear the required `Vercel` check.
+- **Preview**: every PR. The Vercel GitHub app comments the URL on the PR and posts a status check. Preview environment has `E2E_AUTH=1`, so the test sign-in buttons render there (Vercel's deployment protection keeps previews private to Nigel's account). Preview has **no database** — [ADR-0004](adr/0004-preview-has-no-database.md) — so any page that queries Postgres errors on a preview URL; Preview's job is just to prove the build succeeds and clear the required `Vercel` check.
 - **`vercel.json`** (committed):
   ```json
   {
@@ -71,7 +71,7 @@ Dependabot PRs still need every `ci.yml` job green. With branch protection + aut
   Node version comes from `engines.node` in `package.json`. No `installCommand` override; Vercel runs `npm ci` from the lockfile.
 
   `npm run vercel-build` (`scripts/vercel-build.mjs`) runs `db:migrate` only when `VERCEL_ENV === "production"`, then always runs `next build`. Before [ADR-0004](adr/0004-preview-has-no-database.md) the command was a plain `npm run db:migrate && npm run build`, correct from Phase 0 onward since `db:migrate` was a no-op placeholder until Phase 1 pointed it at Drizzle's migrator (`scripts/db-migrate.mjs`, `drizzle-orm/node-postgres/migrator`) — Preview stopped having a database to migrate, so the command had to branch.
-- **Migrations run inside the build**, before `next build`, against Production's `DATABASE_URL` — the only environment that has one ([ADR-0004](adr/0004-preview-has-no-database.md)). They are additive-only in v1 ([DATA_MODEL.md § Migrations](DATA_MODEL.md#migrations)). A failed migration fails the build, and the previous deployment stays live. New migrations are generated with `npm run db:generate` after editing `db/schema.ts`, then committed.
+- **Migrations run inside the build**, before `next build`, against Production's `DATABASE_URL` — the only environment that has one ([ADR-0004](adr/0004-preview-has-no-database.md)). They are additive-only, except the one destructive `0001_teams` authorized by [ADR-0005](adr/0005-every-student-owns-a-team.md) ([DATA_MODEL.md § Migrations](DATA_MODEL.md#migrations)). A failed migration fails the build, and the previous deployment stays live. New migrations are generated with `npm run db:generate` after editing `db/schema.ts`, then committed.
 - **Rollback**: Vercel → Deployments → promote the previous one. Or `git revert` on `main`.
 
 ## Caching

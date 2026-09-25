@@ -13,15 +13,14 @@ export function initials(name: string): string {
   );
 }
 
-/** The first word of a display name, for "<Owner first name> hasn't …" copy. */
+/** The first word of a display name, for "<First name> hasn't …" copy. */
 export function firstName(name: string): string {
   return name.trim().split(/\s+/)[0] ?? name;
 }
 
-/** "Joined <Mon D>" (docs/specs/people.md PPL-01). */
-export function formatJoined(date: Date | string): string {
-  const value = typeof date === "string" ? new Date(date) : date;
-  return `Joined ${value.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+/** "Team Avery" — a team is always named for its owner (ADR-0005 T1). */
+export function teamName(ownerName: string): string {
+  return `Team ${firstName(ownerName)}`;
 }
 
 /** "8:12 PM" in America/Denver (docs/specs/partner-check-ins.md § UI). */

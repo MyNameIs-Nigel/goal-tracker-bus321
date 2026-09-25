@@ -13,7 +13,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
         BUS 321 Goal Tracker
       </h1>
       <p className="text-lg leading-relaxed text-muted text-pretty">
-        Nigel&rsquo;s goals, and the people keeping him honest.
+        Your goals, and the classmates keeping you honest.
       </p>
       {cancelled && (
         <p role="alert" className="text-sm text-red-600 dark:text-red-400">

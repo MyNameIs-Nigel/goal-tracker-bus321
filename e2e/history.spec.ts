@@ -1,10 +1,10 @@
-import { expect, test } from "./fixtures";
+import { expect, teamPath, test } from "./fixtures";
 import { addGoal, resetAt } from "./helpers";
 
 // HIST-01's example: Wednesday 2026-09-23, contract from 9/19 (seeded).
 const FIXED_NOW = "2026-09-23T18:00:00Z";
 
-/** Owner: one daily goal, done on 9/19 and 9/22, sick on 9/21. */
+/** Avery: one daily goal, done on 9/19 and 9/22, sick on 9/21. */
 async function seedSeptember(page: import("@playwright/test").Page) {
   await page.goto("/goals");
   await addGoal(page, { title: "Read 20 pages", startsOn: "2026-09-01" });
@@ -25,11 +25,12 @@ test("HIST-01 the calendar shows day statuses with a legend", async ({
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await seedSeptember(page);
 
-  await signInAs("viewer");
-  await page.goto("/history");
+  // A teammate reads the same calendar on Avery's team page.
+  await signInAs("blake");
+  await page.goto(teamPath("avery", "/history"));
   await expect(
     page.getByRole("heading", { name: "September 2026" }),
   ).toBeVisible();
@@ -48,7 +49,7 @@ test("HIST-01 the calendar shows day statuses with a legend", async ({
 
 test("HIST-02 month navigation", async ({ page, signInAs }) => {
   await resetAt(page, "2026-10-05T18:00:00Z");
-  await signInAs("viewer");
+  await signInAs("casey");
   await page.goto("/history");
   await expect(
     page.getByRole("heading", { name: "October 2026" }),
@@ -64,15 +65,22 @@ test("HIST-02 month navigation", async ({ page, signInAs }) => {
   await expect(page.getByRole("link", { name: "October →" })).toBeVisible();
 });
 
-test("HIST-03 a day links to its day page", async ({ page, signInAs }) => {
+test("HIST-03 a day links to its day page, on your team or a teammate's", async ({
+  page,
+  signInAs,
+}) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("viewer");
+  await signInAs("casey");
   await page.goto("/history");
   await page.getByLabel("September 20, not counting").click();
   await expect(page).toHaveURL(/\/day\/2026-09-20$/);
   await expect(
     page.getByRole("heading", { name: "Sunday, September 20" }),
   ).toBeVisible();
+
+  await page.goto(teamPath("avery", "/history"));
+  await page.getByLabel("September 20, not counting").click();
+  await expect(page).toHaveURL(teamPath("avery", "/day/2026-09-20"));
 });
 
 test("HIST-04 the month summary matches the rules", async ({
@@ -82,7 +90,7 @@ test("HIST-04 the month summary matches the rules", async ({
   // End of the month: 9/20 and the week of 9/21 are failures; Read is done
   // on 9/19 and 9/22–9/29 (9 of 11 counting past periods = 82%).
   await resetAt(page, "2026-09-30T18:00:00Z");
-  await signInAs("owner");
+  await signInAs("avery");
   await seedSeptember(page);
   await page.goto("/goals");
   await addGoal(page, {
@@ -122,7 +130,7 @@ test("HIST-05 weekly and monthly goals are tabled with a status", async ({
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
   await addGoal(page, {
     title: "Gym",
@@ -135,8 +143,8 @@ test("HIST-05 weekly and monthly goals are tabled with a status", async ({
     startsOn: "2026-09-01",
   });
 
-  await signInAs("partner");
-  await page.goto("/history");
+  await signInAs("blake");
+  await page.goto(teamPath("avery", "/history"));
   const table = page.getByRole("region", { name: "Weekly & monthly" });
   await expect(
     table.getByRole("row").filter({ hasText: "Week of Sep 21" }),
@@ -149,28 +157,36 @@ test("HIST-05 weekly and monthly goals are tabled with a status", async ({
   ).toContainText("Not counting");
 });
 
-test("PCI-09 partners show N of M days and a strip on /history", async ({
+test("PCI-09 a team's history shows each partner's N of M days and a strip", async ({
   page,
   signInAs,
 }) => {
   await resetAt(page, "2026-09-15T18:00:00Z");
-  await signInAs("partner");
+  await signInAs("blake");
   await page.goto("/today");
-  await page.getByRole("button", { name: "I checked today" }).click();
+  await page.getByRole("button", { name: "Check in on Avery" }).click();
   await expect(page.getByText(/Checked ✓/)).toBeVisible();
 
-  await page.goto("/history?month=2026-09");
-  const partners = page.getByRole("region", { name: "Partners" });
-  await expect(partners).toContainText("Test Partner — 1 of 15 days");
-  await expect(
-    partners.getByLabel("Test Partner, September 15, checked"),
-  ).toBeVisible();
-  await expect(
-    partners.getByLabel("Test Partner, September 14, not checked"),
-  ).toBeVisible();
-  await expect(
-    partners.getByLabel("Test Partner, September 16, not yet"),
-  ).toBeVisible();
+  // Blake reads it on Avery's team history; Avery on her own.
+  for (const [student, path] of [
+    ["blake", teamPath("avery", "/history?month=2026-09")],
+    ["avery", "/history?month=2026-09"],
+  ] as const) {
+    await signInAs(student);
+    await page.goto(path);
+    const partners = page.getByRole("region", { name: "Partners" });
+    await expect(partners).toContainText("Blake Brown — 1 of 15 days");
+    await expect(partners).toContainText("Casey Clark — 0 of 15 days");
+    await expect(
+      partners.getByLabel("Blake Brown, September 15, checked"),
+    ).toBeVisible();
+    await expect(
+      partners.getByLabel("Blake Brown, September 14, not checked"),
+    ).toBeVisible();
+    await expect(
+      partners.getByLabel("Blake Brown, September 16, not yet"),
+    ).toBeVisible();
+  }
 });
 
 test("HIST-07 fits a 375px-wide phone without horizontal scrolling", async ({
@@ -178,7 +194,7 @@ test("HIST-07 fits a 375px-wide phone without horizontal scrolling", async ({
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("owner");
+  await signInAs("avery");
   await seedSeptember(page);
   await page.goto("/goals");
   await addGoal(page, {
@@ -203,7 +219,7 @@ test("HIST-08 an invalid month falls back to the current month", async ({
   signInAs,
 }) => {
   await resetAt(page, FIXED_NOW);
-  await signInAs("viewer");
+  await signInAs("casey");
   for (const month of ["2026-13", "abc"]) {
     await page.goto(`/history?month=${month}`);
     await expect(

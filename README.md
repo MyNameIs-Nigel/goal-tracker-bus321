@@ -1,8 +1,9 @@
 # BUS 321 Goal Tracker
 
-A goal-tracking web app for one owner (Nigel) whose accountability partners —
-classmates in BUS 321 — sign in with Google and check his progress every day.
-It replaces the shared document that step 5 of the class assignment asks for.
+A goal-tracking web app for BUS 321. Every student who signs in with Google
+owns a team, and every other student is automatically a partner on it. Each day
+you tick off your own goals and check in on each teammate — all on one page. It
+replaces the shared document that step 5 of the class assignment asks for.
 
 Live at **https://bus321.nigel-smith.dev** (production also at
 `https://goal-tracker-bus321.vercel.app`).
@@ -22,7 +23,9 @@ and the docs disagree, the docs win.
 
 ## Running it
 
-Node 24 (see `.nvmrc`) and Docker.
+Node 24 (see `.nvmrc`) and Docker. Locally you sign in as fake students (Avery,
+Blake, Casey) from the sign-in page; **Load demo data** fills in a whole fake
+class.
 
 ```bash
 npm ci

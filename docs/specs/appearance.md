@@ -1,6 +1,6 @@
 # Appearance
 
-**Status:** Approved — requested by Nigel
+**Status:** Approved — requested by Nigel (wording revised for teams by [ADR-0005](../adr/0005-every-student-owns-a-team.md))
 **Phase:** 4
 **Routes:** all pages; selector in the profile dropdown
 
@@ -11,7 +11,7 @@ and never changes tracker data or permissions. No database change.
 ## Scenarios
 
 ### THEME-01 Three-position appearance control
-- **Given** any signed-in role
+- **Given** any signed-in student
 - **When** they open the profile dropdown
 - **Then** an Appearance radio group offers Light, System, Dark above Sign out, with System selected by default
 

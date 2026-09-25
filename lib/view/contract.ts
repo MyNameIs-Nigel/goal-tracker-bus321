@@ -1,7 +1,6 @@
 /** Pure labels for /contract (docs/specs/contract-and-vision.md § Formats). */
 import { APP_TIMEZONE } from "@/lib/clock";
 import { formatMonthShort, formatMonthShortYear } from "@/lib/dates";
-import { firstName } from "@/lib/format";
 
 export function contractRangeLabel(contract: {
   contractStart: string | null;
@@ -16,18 +15,15 @@ export function contractRangeLabel(contract: {
   return `${formatMonthShortYear(contractStart)} – ${formatMonthShortYear(contractEnd)}`;
 }
 
-/** CV-05 — "Last updated Sep 18 by Nigel"; null until the first save. */
-export function lastUpdatedLabel(
-  updatedAt: string | null,
-  updatedByName: string | null,
-): string | null {
-  if (!updatedAt || !updatedByName) return null;
+/** CV-05 — "Last updated Sep 18"; null until the first save. */
+export function lastUpdatedLabel(updatedAt: string | null): string | null {
+  if (!updatedAt) return null;
   const day = new Date(updatedAt).toLocaleDateString("en-US", {
     timeZone: APP_TIMEZONE,
     month: "short",
     day: "numeric",
   });
-  return `Last updated ${day} by ${firstName(updatedByName)}`;
+  return `Last updated ${day}`;
 }
 
 export function partnersLabel(names: readonly string[]): string {

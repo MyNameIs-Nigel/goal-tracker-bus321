@@ -1,6 +1,13 @@
 import { afterEach, expect, test, vi } from "vitest";
 
-import { isE2eEnabled } from "./e2e";
+import {
+  E2E_NAMES,
+  E2E_TEAM_IDS,
+  SEEDED_STUDENTS,
+  e2eEmail,
+  isE2eEnabled,
+  isE2eStudent,
+} from "./e2e";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -25,4 +32,19 @@ test("AUTH-10 test mode is off in production, even with E2E_AUTH=1", () => {
   vi.stubEnv("E2E_AUTH", "1");
   vi.stubEnv("VERCEL_ENV", "production");
   expect(isE2eEnabled()).toBe(false);
+});
+
+test("AUTH-11 three fake students are seeded; Dana joins on first sign-in", () => {
+  expect(SEEDED_STUDENTS).toEqual(["avery", "blake", "casey"]);
+  expect(isE2eStudent("dana")).toBe(true);
+  expect(isE2eStudent("owner")).toBe(false);
+  expect(e2eEmail("blake")).toBe("blake@e2e.local");
+  expect(E2E_NAMES).toEqual({
+    avery: "Avery Adams",
+    blake: "Blake Brown",
+    casey: "Casey Clark",
+    dana: "Dana Diaz",
+  });
+  // Fixed ids, so E2E tests can build team page URLs without a lookup.
+  expect(Object.keys(E2E_TEAM_IDS)).toEqual(["avery", "blake", "casey"]);
 });

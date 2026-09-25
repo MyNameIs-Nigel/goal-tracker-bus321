@@ -1,13 +1,13 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db/client";
 import { goals } from "@/db/schema";
 import { addDays } from "@/lib/dates";
 import { today } from "@/lib/clock";
-import { ForbiddenError, requireUser } from "@/lib/dal";
+import { requireUser } from "@/lib/dal";
 import {
   activeGoalsInCadence,
   getGoal,
@@ -36,20 +36,22 @@ export type SimpleActionResult = { ok: true } | { ok: false; error: string };
 
 const CADENCES: readonly Cadence[] = ["daily", "weekly", "monthly"];
 
-async function requireOwnerCaller() {
-  const user = await requireUser();
-  if (user.role !== "owner") throw new ForbiddenError();
-  return user;
-}
+// TEAM-06: a goal id that isn't on the caller's team reads as missing.
+const NOT_FOUND = { ok: false, error: "Goal not found." } as const;
 
 function revalidateGoalPages() {
   revalidatePath("/goals");
   revalidatePath("/today");
 }
 
-/** GOAL-02 — owner adds a goal. */
+/** Only ever the caller's own row. */
+function ownGoal(teamId: string, id: string) {
+  return and(eq(goals.id, id), eq(goals.teamId, teamId));
+}
+
+/** GOAL-02 — add a goal to the caller's own team. */
 export async function createGoal(input: GoalInput): Promise<GoalActionResult> {
-  await requireOwnerCaller();
+  const { teamId } = await requireUser();
 
   const error = validateGoalInput(input);
   if (error) return { ok: false, error };
@@ -57,11 +59,12 @@ export async function createGoal(input: GoalInput): Promise<GoalActionResult> {
     return { ok: false, error: "Invalid cadence." };
   }
 
-  const siblings = await activeGoalsInCadence(input.cadence);
+  const siblings = await activeGoalsInCadence(teamId, input.cadence);
 
   const [{ id }] = await db
     .insert(goals)
     .values({
+      teamId,
       title: input.title.trim(),
       description: input.description.trim() || null,
       cadence: input.cadence,
@@ -71,15 +74,15 @@ export async function createGoal(input: GoalInput): Promise<GoalActionResult> {
     .returning({ id: goals.id });
 
   revalidateGoalPages();
-  return { ok: true, goal: (await getGoalWithMeta(id))! };
+  return { ok: true, goal: (await getGoalWithMeta(teamId, id))! };
 }
 
-/** GOAL-04/05/06 — owner edits a goal; GOAL-05 locks cadence once it has a completion. */
+/** GOAL-04/05/06 — edit a goal; GOAL-05 locks cadence once it has a completion. */
 export async function updateGoal(
   id: string,
   input: GoalInput,
 ): Promise<GoalActionResult> {
-  await requireOwnerCaller();
+  const { teamId } = await requireUser();
 
   const error = validateGoalInput(input);
   if (error) return { ok: false, error };
@@ -87,8 +90,8 @@ export async function updateGoal(
     return { ok: false, error: "Invalid cadence." };
   }
 
-  const existing = await getGoal(id);
-  if (!existing) return { ok: false, error: "Goal not found." };
+  const existing = await getGoal(teamId, id);
+  if (!existing) return NOT_FOUND;
 
   if (input.cadence !== existing.cadence && (await goalHasCompletions(id))) {
     return {
@@ -107,41 +110,44 @@ export async function updateGoal(
       startsOn: input.startsOn,
       updatedAt: new Date(),
     })
-    .where(eq(goals.id, id));
+    .where(ownGoal(teamId, id));
 
   revalidateGoalPages();
-  return { ok: true, goal: (await getGoalWithMeta(id))! };
+  return { ok: true, goal: (await getGoalWithMeta(teamId, id))! };
 }
 
 /** GOAL-07 — archive ends a goal yesterday, so it drops off today and today's period. */
 export async function archiveGoal(id: string): Promise<GoalActionResult> {
-  await requireOwnerCaller();
+  const { teamId } = await requireUser();
+  if (!(await getGoal(teamId, id))) return NOT_FOUND;
 
   await db
     .update(goals)
     .set({ endsOn: addDays(today(), -1), updatedAt: new Date() })
-    .where(eq(goals.id, id));
+    .where(ownGoal(teamId, id));
 
   revalidateGoalPages();
-  return { ok: true, goal: (await getGoalWithMeta(id))! };
+  return { ok: true, goal: (await getGoalWithMeta(teamId, id))! };
 }
 
 /** GOAL-08 — restore an archived goal. */
 export async function unarchiveGoal(id: string): Promise<GoalActionResult> {
-  await requireOwnerCaller();
+  const { teamId } = await requireUser();
+  if (!(await getGoal(teamId, id))) return NOT_FOUND;
 
   await db
     .update(goals)
     .set({ endsOn: null, updatedAt: new Date() })
-    .where(eq(goals.id, id));
+    .where(ownGoal(teamId, id));
 
   revalidateGoalPages();
-  return { ok: true, goal: (await getGoalWithMeta(id))! };
+  return { ok: true, goal: (await getGoalWithMeta(teamId, id))! };
 }
 
 /** GOAL-09 — delete only when nothing has been recorded; cascades to exceptions. */
 export async function deleteGoal(id: string): Promise<SimpleActionResult> {
-  await requireOwnerCaller();
+  const { teamId } = await requireUser();
+  if (!(await getGoal(teamId, id))) return NOT_FOUND;
 
   if (await goalHasCompletions(id)) {
     return {
@@ -150,7 +156,7 @@ export async function deleteGoal(id: string): Promise<SimpleActionResult> {
     };
   }
 
-  await db.delete(goals).where(eq(goals.id, id));
+  await db.delete(goals).where(ownGoal(teamId, id));
 
   revalidateGoalPages();
   return { ok: true };
@@ -161,14 +167,12 @@ export async function moveGoal(
   id: string,
   direction: "up" | "down",
 ): Promise<MoveGoalResult> {
-  await requireOwnerCaller();
+  const { teamId } = await requireUser();
 
-  const goal = await getGoal(id);
-  if (!goal || goal.endsOn !== null) {
-    return { ok: false, error: "Goal not found." };
-  }
+  const goal = await getGoal(teamId, id);
+  if (!goal || goal.endsOn !== null) return NOT_FOUND;
 
-  const siblings = await activeGoalsInCadence(goal.cadence);
+  const siblings = await activeGoalsInCadence(teamId, goal.cadence);
   const index = siblings.findIndex((sibling) => sibling.id === id);
   const swapIndex = direction === "up" ? index - 1 : index + 1;
   if (index === -1 || swapIndex < 0 || swapIndex >= siblings.length) {
@@ -180,11 +184,11 @@ export async function moveGoal(
     await tx
       .update(goals)
       .set({ sortOrder: neighbor.sortOrder })
-      .where(eq(goals.id, goal.id));
+      .where(ownGoal(teamId, goal.id));
     await tx
       .update(goals)
       .set({ sortOrder: goal.sortOrder })
-      .where(eq(goals.id, neighbor.id));
+      .where(ownGoal(teamId, neighbor.id));
   });
 
   revalidateGoalPages();

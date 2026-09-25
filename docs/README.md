@@ -7,7 +7,7 @@ Everything about how this project behaves and how it is built is written here **
 | Read this | To learn |
 |---|---|
 | [PHASES.md](PHASES.md) | The build plan: phases, exit criteria, current status, and where a human is needed |
-| [HUMAN_TASKS.md](HUMAN_TASKS.md) | Every step that needs Nigel, with exact click-by-click / copy-paste instructions |
+| [HUMAN_TASKS.md](HUMAN_TASKS.md) | The account setup only Nigel could do — all done; nothing is waiting on him |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Stack, folder layout, request flow, auth, time handling, environment variables |
 | [DATA_MODEL.md](DATA_MODEL.md) | Tables, invariants, and the derived rules (periods, counting, failures, streaks) |
 | [WORKFLOW.md](WORKFLOW.md) | DOCS → TESTS → CODE in practice; branches, PRs, and what Claude does without asking |

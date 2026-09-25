@@ -5,7 +5,7 @@ test("THEME-02 explicit appearance persists across pages and reload", async ({
   signInAs,
 }) => {
   await page.emulateMedia({ colorScheme: "dark" });
-  await signInAs("viewer");
+  await signInAs("blake");
   await page.goto("/today");
   await page.getByRole("button", { name: "User menu" }).click();
   await page.getByRole("radio", { name: "Light", exact: true }).check();
@@ -34,7 +34,7 @@ test("THEME-03 system follows device changes live", async ({
   page,
   signInAs,
 }) => {
-  await signInAs("partner");
+  await signInAs("casey");
   await page.goto("/today");
   await page.emulateMedia({ colorScheme: "dark" });
   await expect(page.locator("body")).toHaveCSS(
@@ -51,7 +51,7 @@ test("THEME-04 arrow keys select appearance and Escape closes the panel", async 
   page,
   signInAs,
 }) => {
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/today");
   await page.getByRole("button", { name: "User menu" }).click();
   await page.getByRole("radio", { name: "System" }).focus();
@@ -66,7 +66,7 @@ test("THEME-06 saved appearance applies before hydration and reduced motion stop
   page,
   signInAs,
 }) => {
-  await signInAs("owner");
+  await signInAs("avery");
   await page.addInitScript(() => localStorage.setItem("bus321-theme", "dark"));
   await page.route("**/_next/**/*.js", (route) => route.abort());
   await page.goto("/today", { waitUntil: "domcontentloaded" });

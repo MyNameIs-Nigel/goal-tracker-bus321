@@ -1,6 +1,6 @@
 # ADR-0001: Initial scope
 
-**Status:** Accepted 2026-09-15
+**Status:** Accepted 2026-09-15 · B2, B3, B4 and D5 superseded by [ADR-0005](0005-every-student-owns-a-team.md)
 **Deciders:** Nigel (answers), Claude (questions and recommendations)
 
 ## Context

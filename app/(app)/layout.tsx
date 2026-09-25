@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Nav from "@/components/Nav";
 import UserMenu from "@/components/UserMenu";
 import { requireUser } from "@/lib/dal";
+import { teamName } from "@/lib/format";
 
 /** Requires a session (AUTH-01); everything under (app)/ lives behind this. */
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -18,12 +19,12 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <span className="text-sm font-semibold tracking-tight">
             BUS 321 Goal Tracker
           </span>
-          <Nav role={user.role} />
+          <Nav />
           <UserMenu
             name={user.name}
             email={user.email}
             image={user.image}
-            role={user.role}
+            teamName={teamName(user.name)}
           />
         </div>
       </header>

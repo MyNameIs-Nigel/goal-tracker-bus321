@@ -7,10 +7,10 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/lib/auth-client", () => ({ signOut: vi.fn() }));
 const props = {
-  name: "Test Viewer",
-  email: "viewer@e2e.local",
+  name: "Avery Adams",
+  email: "avery@e2e.local",
   image: null,
-  role: "viewer" as const,
+  teamName: "Team Avery",
 };
 beforeEach(() => {
   localStorage.clear();
@@ -62,4 +62,11 @@ test("THEME-05 blocked storage does not prevent changing appearance", () => {
   fireEvent.click(screen.getByRole("radio", { name: "Light" }));
   expect(document.documentElement.dataset.theme).toBe("light");
   vi.restoreAllMocks();
+});
+test("AUTH-12 the profile shows name, email and team", () => {
+  open();
+  const profile = screen.getByRole("region", { name: "Your profile" });
+  expect(profile).toHaveTextContent("Avery Adams");
+  expect(profile).toHaveTextContent("avery@e2e.local");
+  expect(profile).toHaveTextContent("Team Avery");
 });

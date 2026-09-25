@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Project: BUS 321 Goal Tracker
 
-A goal-tracking web app for **one owner** (Nigel) whose accountability partners — classmates in BUS 321 — sign in with Google and check his progress every day. It exists to satisfy step 5 of the class assignment (*"make your accountability document available to your partners"*) as a real app instead of a shared doc. The assignment's content (vision, goals, contract) is **data the owner enters in the app**, not something in this repo. Optimize for how easy it is for a classmate to open the link and see the truth.
+A goal-tracking web app for a class. **Every student who signs in with Google owns a team** ("Team Nigel", "Team Avery"), and **every other student is instantly a partner on it** — three students means three teams with two partners each. Each day a student ticks off their own goals and checks in on each teammate, all on one page. It exists to satisfy step 5 of the BUS 321 assignment (*"make your accountability document available to your partners"*) as a real app instead of a shared doc. The assignment's content (vision, goals, contract) is **data each student enters in the app**, not something in this repo. Optimize for how little effort the daily routine takes: open the link, land on today, tap, done — under 30 seconds.
 
 ## Source of truth
 
@@ -19,23 +19,25 @@ A goal-tracking web app for **one owner** (Nigel) whose accountability partners 
 | Doc | What |
 |---|---|
 | `docs/PHASES.md` | build phases, exit criteria, **current status** |
-| `docs/HUMAN_TASKS.md` | the only things Nigel has to do, step by step |
+| `docs/HUMAN_TASKS.md` | the account setup only Nigel could do — all done |
 | `docs/ARCHITECTURE.md` · `docs/DATA_MODEL.md` | stack, layout, request flow, tables, and the derived rules (periods, counting, failures, streak) |
 | `docs/WORKFLOW.md` · `docs/CI_CD.md` · `docs/TESTING.md` | how work moves, what CI enforces, where tests live |
 | `docs/specs/*.md` | one spec per feature; Given/When/Then scenarios with IDs that tests name |
-| `docs/adr/` | decisions — `0001` is Nigel's answers, `0002` is Claude's gap-filling defaults |
+| `docs/adr/` | decisions — `0001` is Nigel's first answers, `0002` Claude's gap-filling defaults, `0005` the teams redesign |
 
-## Decisions in one breath (details: `docs/adr/0001-initial-scope.md`)
+## Decisions in one breath (details: `docs/adr/0001-initial-scope.md`, `docs/adr/0005-every-student-owns-a-team.md`)
 
-Vercel · `https://bus321.nigel-smith.dev` (Cloudflare DNS) · Better Auth with Google as the only provider · anyone with a Google account signs in as `viewer` · roles `owner` / `partner` / `viewer`, owner promotes in-app · vision, contract **and goals** are edited in the app and stored in Neon Postgres via Drizzle · `America/Denver` defines "today" · owner may edit past days freely; failures are derived, never stored · exceptions need a reason and are visible to partners · just show the monthly failure count · Tailwind v4, no component library, one calm green accent, mobile-first · Vitest + RTL + Playwright · test-only sign-in for previews/CI/local (`E2E_AUTH=1`) · docs→tests→code enforced by a CI `flow-check` job · squash merges, Conventional Commit PR titles, Dependabot, Prettier · npm, Node 24 · **contract starts Saturday 2026-09-19**.
+Vercel · `https://bus321.nigel-smith.dev` (Cloudflare DNS) · Better Auth with Google as the only provider · anyone with a Google account signs in as a **student** and gets a **team** · every other student is a partner, nothing to promote, no roles · each student's vision, contract **and goals** are edited in the app and stored in Neon Postgres via Drizzle · `America/Denver` defines "today" · students may edit their own past days freely; failures are derived, never stored · exceptions need a reason and are visible to partners · just show the monthly failure count · **no reminders or notifications** · Tailwind v4, no component library, one calm green accent, mobile-first · Vitest + RTL + Playwright · test-only sign-in with **fake students** for previews/CI/local (`E2E_AUTH=1`) · docs→tests→code enforced by a CI `flow-check` job · squash merges, Conventional Commit PR titles, Dependabot, Prettier · npm, Node 24.
 
 ## Non-negotiables
 
 - **Next.js App Router**, TypeScript strict, Tailwind v4. Read `node_modules/next/dist/docs/` before touching a framework API (see the block above — this version differs from training data; middleware is `proxy.ts`).
-- **Single owner.** Not multi-tenant. Never design for many users tracking their own goals.
-- **Google OAuth only.** A classmate signs in with zero setup.
-- **Roles are real.** Partners can *do* something (the daily check-in); the owner is the only writer of tracker data; authorization lives in the Data Access Layer and every Server Action calls it first. UI hiding is a courtesy, not security.
+- **Every student owns exactly one team; every other student is a partner.** Partnership is derived, never stored or granted.
+- **Google OAuth only.** A classmate signs in with zero setup and lands on `/today`.
+- **Ownership is real.** You write only your own team's data; you check in only on other teams. Authorization lives in the Data Access Layer — `requireUser()` returns the caller's team — and every Server Action scopes its writes to it. UI hiding is a courtesy, not security.
+- **The daily routine is one page.** `/today` is your goals at the top, then a one-tap check-in for each teammate. Logging in and checking in take under 30 seconds.
 - **Stunning through simplicity.** Clean, minimal, fast, phone-first. A classmate should understand the whole app in ten seconds.
+- **Fake data until release.** Tests and local runs use the seeded fake students; no real student's data is used to test anything.
 - **GitHub is the source of truth; GitHub Actions runs checks; Vercel deploys.** Remote: `MyNameIs-Nigel/goal-tracker-bus321`.
 - **Secrets never pass through Claude.** No reading `.env*` values into chat, no typing secrets, no committing them.
 
@@ -53,10 +55,10 @@ A PR that changes code without docs and tests is incomplete; CI's `flow-check` f
 
 ## Autonomy
 
-Nigel wants as little human involvement as possible. Inside the active phase Claude branches, commits, opens PRs, fixes CI, **merges its own green PRs** (each merge deploys to production — intended), sets non-secret env vars and repo settings the docs specify, and updates `docs/PHASES.md`. Claude asks before starting a phase, doing anything destructive to production data, changing repo visibility, spending money, contacting partners, or reversing an accepted ADR. Everything that needs Nigel is in `docs/HUMAN_TASKS.md`; request a phase's human tasks all at once at the start of the phase.
+Nigel wants as little human involvement as possible. Inside the active phase Claude branches, commits, opens PRs, fixes CI, **merges its own green PRs** (each merge deploys to production — intended), sets non-secret env vars and repo settings the docs specify, and updates `docs/PHASES.md`. Claude asks before starting a phase, doing anything destructive to production data, changing repo visibility, spending money, contacting classmates, or reversing an accepted ADR. Nothing currently needs Nigel (`docs/HUMAN_TASKS.md`).
 
 ## Current state
 
-**Phases 0–3 are merged and deployed (2026-09-16); Phase 4 (Launch) has not started.** The production sign-in checks in Phases 1–3's exit criteria need Nigel with a Google account. Do not start a phase until Nigel says "start Phase N". Check the status table in `docs/PHASES.md` — Claude keeps it current.
+**Phases 0–4 shipped a single-owner tracker (2026-09-16/17). Phase 5 — Teams — is in progress (started at Nigel's request 2026-09-24)** and replaces the owner/partner/viewer model with a team per student ([ADR-0005](docs/adr/0005-every-student-owns-a-team.md)). Check the status table in `docs/PHASES.md` — Claude keeps it current.
 
-Human gates cleared on 2026-09-16: repo is **public** (H1), Vercel project **`goal-tracker-bus321`** exists at `https://goal-tracker-bus321.vercel.app` and the folder is linked (H2), Neon Postgres is connected (H3, H9). Google OAuth client and its secrets are in Vercel Production (H4, H5); `https://bus321.nigel-smith.dev` is live (H6); `main` is protected with all eight checks required (H9). Local dev/E2E use Postgres in Docker, never Neon (`docs/adr/0003-public-repo-and-local-database.md`). As of 2026-09-17, Neon is **Production only** — Preview has no database at all, after Neon's Free-tier branch limit blocked a deployment (H10, `docs/adr/0004-preview-has-no-database.md`).
+Infrastructure is fully set up: the repo is **public**, Vercel project **`goal-tracker-bus321`** deploys `main` to `https://bus321.nigel-smith.dev` (functions in `pdx1`), Google OAuth is configured in Production, and `main` is protected with all eight checks required. Neon Postgres is **Production only**; Preview has no database (ADR-0004). Local dev/E2E use a local Postgres, never Neon (ADR-0003). Nigel has signed in with Google on production.

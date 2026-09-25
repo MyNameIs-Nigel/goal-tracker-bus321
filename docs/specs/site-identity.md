@@ -10,7 +10,7 @@ Give the tracker a clear, consistent identity in browser tabs, bookmarks, and li
 
 ## Roles
 
-The generated assets are public and identical for the owner, partners, viewers, and signed-out visitors.
+The generated assets are public and identical for every student and for signed-out visitors.
 
 ## Scenarios
 

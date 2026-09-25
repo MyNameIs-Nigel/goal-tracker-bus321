@@ -1,6 +1,6 @@
 # ADR-0002: Gap-filling defaults chosen by Claude
 
-**Status:** Accepted 2026-09-15 — any item can be vetoed by Nigel by ID ("G4: no") and will be revisited in a superseding ADR
+**Status:** Accepted 2026-09-15 — any item can be vetoed by Nigel by ID ("G4: no") and will be revisited in a superseding ADR · G12 and G15 superseded in part by [ADR-0005](0005-every-student-owns-a-team.md)
 **Deciders:** Claude
 
 ## Context

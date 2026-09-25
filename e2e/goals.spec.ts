@@ -1,16 +1,15 @@
-import { expect, test } from "./fixtures";
+import { expect, teamPath, test } from "./fixtures";
 import { addGoal } from "./helpers";
 
-// Cadence-lock (GOAL-05) and delete-when-completed (GOAL-09) both require an
-// existing completion, which needs the daily-tracking UI (Phase 2's other
-// spec, same PR-cycle but landing separately) — those two branches are unit
-// tests: lib/actions/goals.test.ts.
+// Cadence-lock (GOAL-05) and delete-when-completed (GOAL-09) are unit tests
+// (lib/actions/goals.test.ts), as is GOAL-11's direct-action half: another
+// team's goal id is "Goal not found." and nothing is written.
 
 test("GOAL-01 goals are listed by cadence, with a collapsed archived section", async ({
   page,
   signInAs,
 }) => {
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
 
   await addGoal(page, { title: "Daily one", description: "First daily" });
@@ -45,11 +44,11 @@ test("GOAL-01 goals are listed by cadence, with a collapsed archived section", a
   await expect(page.getByText("Archived (1)")).toBeVisible();
 });
 
-test("GOAL-02 owner adds a goal and it persists after reload", async ({
+test("GOAL-02 a student adds a goal and it persists after reload", async ({
   page,
   signInAs,
 }) => {
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
 
   await addGoal(page, {
@@ -63,7 +62,7 @@ test("GOAL-02 owner adds a goal and it persists after reload", async ({
 });
 
 test("GOAL-03 title is required and bounded", async ({ page, signInAs }) => {
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
 
   // Next.js's own route announcer is also `role="alert"`
@@ -79,11 +78,11 @@ test("GOAL-03 title is required and bounded", async ({ page, signInAs }) => {
   await expect(formError).toHaveText("Keep the title under 120 characters");
 });
 
-test("GOAL-04 owner edits a goal's title and description", async ({
+test("GOAL-04 a student edits a goal's title and description", async ({
   page,
   signInAs,
 }) => {
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
   await addGoal(page, { title: "Original title" });
 
@@ -101,8 +100,8 @@ test("GOAL-04 owner edits a goal's title and description", async ({
   await expect(page.getByText("Original title")).not.toBeVisible();
 });
 
-test("GOAL-06 owner changes the start date", async ({ page, signInAs }) => {
-  await signInAs("owner");
+test("GOAL-06 a student changes the start date", async ({ page, signInAs }) => {
+  await signInAs("avery");
   await page.goto("/goals");
   await addGoal(page, { title: "Shift me", startsOn: "2026-09-22" });
 
@@ -131,7 +130,7 @@ test("GOAL-07/08 archive removes a goal from the active sections; restore brings
   page,
   signInAs,
 }) => {
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
   await addGoal(page, { title: "Archive me" });
 
@@ -159,7 +158,7 @@ test("GOAL-10 reorder within a cadence persists after reload", async ({
   page,
   signInAs,
 }) => {
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
   await addGoal(page, { title: "A" });
   await addGoal(page, { title: "B" });
@@ -187,33 +186,30 @@ test("GOAL-10 reorder within a cadence persists after reload", async ({
   await expect(titlesAfterReload).toHaveText(["A", "C", "B"]);
 });
 
-test("GOAL-11 non-owners see no controls and can't write", async ({
+test("GOAL-11 /goals is only ever your own list", async ({
   page,
   signInAs,
 }) => {
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/goals");
-  await addGoal(page, { title: "Owner's goal" });
+  await addGoal(page, { title: "Avery's goal" });
 
-  for (const role of ["partner", "viewer"] as const) {
-    await signInAs(role);
-    await page.goto("/goals");
-    await expect(page.getByText("Owner's goal")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Add goal" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Edit" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Archive" })).toHaveCount(0);
+  await signInAs("blake");
+  await page.goto("/goals");
+  await expect(page.getByText("No goals yet.")).toBeVisible();
+  await expect(page.getByText("Avery's goal")).toHaveCount(0);
+
+  // Blake reads it on Avery's team page, with no goal controls there.
+  await page.goto(teamPath("avery"));
+  await expect(page.getByText("Avery's goal")).toBeVisible();
+  for (const name of ["Add goal", "Edit", "Archive", "Move up"]) {
+    await expect(page.getByRole("button", { name })).toHaveCount(0);
   }
 });
 
-test("GOAL-12 empty state names the owner for non-owners", async ({
-  page,
-  signInAs,
-}) => {
-  await signInAs("owner");
+test("GOAL-12 empty state", async ({ page, signInAs }) => {
+  await signInAs("casey");
   await page.goto("/goals");
   await expect(page.getByText("No goals yet.")).toBeVisible();
-
-  await signInAs("viewer");
-  await page.goto("/goals");
-  await expect(page.getByText("Test hasn't added goals yet.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add goal" })).toBeVisible();
 });

@@ -1,5 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "./fixtures";
+import type { Page } from "@playwright/test";
+
+import { expect, teamPath, test } from "./fixtures";
+import { region, resetWithDemo, teammateRow } from "./helpers";
 
 test("LAUNCH-01 production alias preserves path and query in permanent redirect", async ({
   request,
@@ -32,104 +35,126 @@ test("LAUNCH-04 public identity images load without authentication", async ({
   }
 });
 
-for (const role of ["owner", "partner", "viewer"] as const) {
-  test(`LAUNCH-03 ${role} main routes pass accessibility in light and dark`, async ({
-    page,
-    signInAs,
-    isMobile,
-  }) => {
-    test.setTimeout(120_000);
-    if (isMobile) await page.setViewportSize({ width: 375, height: 812 });
-    await signInAs(role);
-    for (const colorScheme of ["light", "dark"] as const) {
-      await page.emulateMedia({ colorScheme });
-      for (const route of [
-        "/today",
-        "/goals",
-        "/contract",
-        "/history",
-        ...(role === "owner" ? ["/people"] : []),
-      ]) {
-        await page.goto(route);
-        await expect(page.locator("h1")).toBeVisible();
-        const result = await new AxeBuilder({ page })
-          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
-          .analyze();
-        expect(result.violations, `${role} ${colorScheme} ${route}`).toEqual(
-          [],
+async function auditRoutes(page: Page, routes: readonly string[]) {
+  for (const colorScheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme });
+    for (const route of routes) {
+      await page.goto(route);
+      await expect(page.locator("h1")).toBeVisible();
+      const result = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+        .analyze();
+      expect(result.violations, `${colorScheme} ${route}`).toEqual([]);
+      const small = await page
+        .locator("button:visible, select:visible, nav a:visible")
+        .evaluateAll((elements) =>
+          elements
+            .filter((el) => {
+              const r = el.getBoundingClientRect();
+              return r.height < 44 || r.width < 44;
+            })
+            .map((el) => el.textContent || el.getAttribute("aria-label")),
         );
-        const small = await page
-          .locator("button:visible, select:visible, nav a:visible")
-          .evaluateAll((elements) =>
-            elements
-              .filter((el) => {
-                const r = el.getBoundingClientRect();
-                return r.height < 44 || r.width < 44;
-              })
-              .map((el) => el.textContent || el.getAttribute("aria-label")),
-          );
-        expect(small, `Small targets on ${route}`).toEqual([]);
-        expect(
-          await page.evaluate(
-            () => document.documentElement.scrollWidth <= innerWidth,
-          ),
-        ).toBe(true);
-      }
+      expect(small, `Small targets on ${route}`).toEqual([]);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+        `Horizontal overflow on ${route}`,
+      ).toBe(true);
     }
-    await page.goto("/today");
-    await page.getByRole("button", { name: "User menu" }).click();
-    expect(
-      (
-        await new AxeBuilder({ page })
-          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
-          .analyze()
-      ).violations,
-    ).toEqual([]);
-    await page.keyboard.press("Escape");
-    await page.goto("/today");
-    await page.keyboard.press("Tab");
-    await expect(
-      page.getByRole("link", { name: "Skip to content" }),
-    ).toBeFocused();
-    await page.keyboard.press("Enter");
-    await expect(page.locator("main")).toBeFocused();
-  });
+  }
 }
 
-test("LAUNCH-05 demotion refreshes authorization for an existing session and action", async ({
+test("LAUNCH-03 your own and a teammate's routes pass accessibility in light and dark, with demo data", async ({
   page,
+  signInAs,
+  isMobile,
+}) => {
+  test.setTimeout(180_000);
+  if (isMobile) await page.setViewportSize({ width: 375, height: 812 });
+  await resetWithDemo(page);
+  await signInAs("avery");
+  await auditRoutes(page, [
+    "/today",
+    "/goals",
+    "/contract",
+    "/history",
+    teamPath("blake"),
+    teamPath("blake", "/contract"),
+    teamPath("blake", "/history"),
+  ]);
+
+  // A note field open on a teammate's row, and the profile panel.
+  await page.goto("/today");
+  await page.getByRole("button", { name: "Check in on Blake" }).click();
+  await teammateRow(page, "Blake Brown")
+    .getByRole("button", { name: "Add a note" })
+    .click();
+  await page.getByRole("button", { name: "User menu" }).click();
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+  await page.keyboard.press("Escape");
+  await page.goto("/today");
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("link", { name: "Skip to content" }),
+  ).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("main")).toBeFocused();
+});
+
+test("LAUNCH-03 empty states pass accessibility too", async ({
+  page,
+  signInAs,
+  isMobile,
+}) => {
+  test.setTimeout(120_000);
+  if (isMobile) await page.setViewportSize({ width: 375, height: 812 });
+  await signInAs("casey");
+  await auditRoutes(page, [
+    "/today",
+    "/goals",
+    "/contract",
+    "/history",
+    teamPath("avery"),
+  ]);
+});
+
+test("LAUNCH-05 every request is answered for the person making it", async ({
+  page: avery,
   browser,
   signInAs,
 }) => {
+  // Blake gets a browser of his own; Avery is the fixture's (reset) page.
   const context = await browser.newContext({
     baseURL: "http://localhost:3000",
   });
   try {
-    const partner = await context.newPage();
-    await partner.request.post("/api/e2e/sign-in", {
-      data: { role: "partner" },
+    const blake = await context.newPage();
+    await signInAs("avery");
+    await blake.request.post("/api/e2e/sign-in", {
+      data: { student: "blake" },
     });
-    await partner.goto("/today");
-    await expect(
-      partner.getByRole("button", { name: "I checked today" }),
-    ).toBeVisible();
-    await signInAs("owner");
-    await page.goto("/people");
-    await page
-      .getByRole("combobox", { name: "Role for Test Partner" })
-      .selectOption("viewer");
-    await expect(page.getByText("Test Partner is now a viewer")).toBeVisible();
-    await partner.getByRole("button", { name: "I checked today" }).click();
-    await expect(
-      partner.getByRole("heading", { name: "We couldn’t load this page" }),
-    ).toBeVisible();
-    await partner.getByRole("button", { name: "Try again" }).click();
-    await expect(partner.getByRole("heading", { level: 1 })).not.toHaveText(
-      "We couldn’t load this page",
+    await Promise.all([avery.goto("/today"), blake.goto("/today")]);
+
+    await expect(teammateRow(avery, "Blake Brown")).toBeVisible();
+    await expect(teammateRow(avery, "Avery Adams")).toHaveCount(0);
+    await expect(teammateRow(blake, "Avery Adams")).toBeVisible();
+    await expect(teammateRow(blake, "Blake Brown")).toHaveCount(0);
+
+    await avery.getByRole("button", { name: "Check in on Blake" }).click();
+    await expect(teammateRow(avery, "Blake Brown")).toContainText("Checked ✓");
+    await blake.reload();
+    await expect(teammateRow(blake, "Avery Adams")).not.toContainText(
+      "Checked ✓",
     );
-    await expect(
-      partner.getByRole("button", { name: "I checked today" }),
-    ).toHaveCount(0);
+    await expect(region(blake, "Checked on you")).toContainText("Checked ✓");
   } finally {
     await context.close();
   }
@@ -140,7 +165,7 @@ test("LAUNCH-06 open profile panel never covers the navigation", async ({
   signInAs,
 }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "phone header layout only");
-  await signInAs("owner");
+  await signInAs("avery");
   await page.goto("/today");
   await page.getByRole("button", { name: "User menu" }).click();
   const panel = page.getByRole("region", { name: "Your profile" });
@@ -148,7 +173,7 @@ test("LAUNCH-06 open profile panel never covers the navigation", async ({
 
   const panelBox = (await panel.boundingBox())!;
   const nav = page.getByRole("navigation", { name: "Primary" });
-  for (const name of ["Today", "Goals", "History", "People"]) {
+  for (const name of ["Today", "Goals", "Contract", "History"]) {
     const link = nav.getByRole("link", { name, exact: true });
     const linkBox = (await link.boundingBox())!;
     expect(

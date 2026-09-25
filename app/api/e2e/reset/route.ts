@@ -3,9 +3,10 @@ import { setFixedNow } from "@/lib/clock";
 import { isE2eEnabled } from "@/lib/e2e";
 
 /**
- * AUTH-10/11 — 404 outside test mode. In test mode, empties and reseeds
- * every app table and, when `now` is given, pins `lib/clock.ts` to it until
- * the next reset.
+ * AUTH-10/11/13 — 404 outside test mode. In test mode, pins `lib/clock.ts`
+ * to `now` when given (until the next reset), then empties and reseeds every
+ * app table — with the fake demo class when `demo` is true, dated from that
+ * clock.
  */
 export async function POST(request: Request) {
   if (!isE2eEnabled()) {
@@ -13,10 +14,8 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => ({}));
-  const now = typeof body?.now === "string" ? body.now : null;
-
-  await seedE2e();
-  setFixedNow(now);
+  setFixedNow(typeof body?.now === "string" ? body.now : null);
+  await seedE2e({ demo: body?.demo === true });
 
   return Response.json({ ok: true });
 }

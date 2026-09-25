@@ -1,6 +1,6 @@
 /**
  * Pure view-model for /history (docs/specs/history.md § Definitions). Takes
- * the whole tracker's rows plus the month's check-ins and produces exactly
+ * one team's rows plus the month's check-ins on it and produces exactly
  * what the page renders — no DB access, `today` is always a parameter.
  */
 import {
@@ -53,12 +53,8 @@ export type HistoryData = {
   partners: PartnerMonth[];
 };
 
-/** A check-in as /history needs it; `userName` covers users no longer partners. */
-export type MonthCheckin = {
-  userId: string;
-  date: string;
-  userName?: string;
-};
+/** A check-in on the team as /history needs it. */
+export type MonthCheckin = { userId: string; date: string };
 
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 
@@ -249,7 +245,7 @@ export function buildHistoryData({
   };
 }
 
-/** HIST-06 / PCI-09 — N of M elapsed days per partner, plus the day strip. */
+/** HIST-06 / PCI-09 — N of M elapsed days per partner of the team, plus the day strip. */
 function partnerMonths({
   month,
   today,
@@ -271,23 +267,7 @@ function partnerMonths({
         ? Number(today.slice(8))
         : 0;
 
-  const people = new Map<string, PartnerSummary>(
-    partners.map((partner) => [partner.id, partner]),
-  );
-  for (const checkin of checkins) {
-    if (!people.has(checkin.userId) && checkin.date.startsWith(month)) {
-      people.set(checkin.userId, {
-        id: checkin.userId,
-        name: checkin.userName ?? "Former partner",
-        image: null,
-      });
-    }
-  }
-  const extras = [...people.values()]
-    .filter((p) => !partners.some((partner) => partner.id === p.id))
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  return [...partners, ...extras].map((person) => {
+  return partners.map((person) => {
     const checkedDates = new Set(
       checkins
         .filter((c) => c.userId === person.id && c.date.startsWith(month))
