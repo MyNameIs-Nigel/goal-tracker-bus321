@@ -9,6 +9,7 @@ One file per decision (or per batch of related decisions), numbered, never edite
 | [0003](0003-public-repo-and-local-database.md) | Repository is public; local database runs in Docker | Accepted 2026-09-16 |
 | [0004](0004-preview-has-no-database.md) | Preview deployments have no database — production only | Accepted 2026-09-17 |
 | [0005](0005-every-student-owns-a-team.md) | Every student owns a team; no roles, no reminders | Accepted 2026-09-24 |
+| [0006](0006-admin-can-disable-users.md) | An admin, stored in the database, can disable users | Accepted 2026-09-28 |
 
 ## Template
 

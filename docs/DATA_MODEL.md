@@ -16,9 +16,17 @@ Every student owns exactly one **team** ([ADR-0005](adr/0005-every-student-owns-
 
 ### Managed by Better Auth (shape per its docs at implementation time)
 
-`user`, `session`, `account`, `verification`, unchanged from Better Auth's defaults. `user` carries `name`, `email` (unique), `image` (avatar URL) and `created_at` from Google. There is no role column ([ADR-0005](adr/0005-every-student-owns-a-team.md) T3).
+`user`, `session`, `account`, `verification`, unchanged from Better Auth's defaults. `user` carries `name`, `email` (unique), `image` (avatar URL) and `created_at` from Google. There is no role column ([ADR-0005](adr/0005-every-student-owns-a-team.md) T3). One app column is added: `disabled` (boolean, not null, default `false`) — a disabled user cannot use the app ([ADR-0006](adr/0006-admin-can-disable-users.md), [specs/admin.md](specs/admin.md)).
 
 A **student** is a `user` that owns a team.
+
+### `admins`
+
+| Column | Type | Notes |
+|---|---|---|
+| `email` | text PK | lower-case; a user whose email is here is an admin |
+
+Seeded by `0002_admin_disable` with Nigel's address. Admin only gates `/admin`.
 
 ### `teams`
 
@@ -189,7 +197,7 @@ If `contract_start` is set and `contract_start ≤ T`: day **N** = `T − contra
 
 ### Partners
 
-The **partners** of 𝒯 are every student except 𝒯's owner, ordered by name. Nothing about partnership is stored ([ADR-0005](adr/0005-every-student-owns-a-team.md) T2). From a student's own point of view, their partners' teams are their **teammates**.
+The **partners** of 𝒯 are every student except 𝒯's owner, ordered by name. Disabled students are excluded from partners and teammate lists. Nothing about partnership is stored ([ADR-0005](adr/0005-every-student-owns-a-team.md) T2). From a student's own point of view, their partners' teams are their **teammates**.
 
 ### Checked in
 
@@ -209,4 +217,5 @@ For a teammate's team on date T:
 - Drizzle Kit generates SQL migrations into `db/migrations/`; they are committed and reviewed like code.
 - Applied by `npm run db:migrate` — in the Vercel build command (Production only, [ADR-0004](adr/0004-preview-has-no-database.md)) and before the E2E job in CI.
 - `0000_init` created the single-owner schema. **`0001_teams` is destructive by design** ([ADR-0005](adr/0005-every-student-owns-a-team.md) T7): it drops `settings`, the old app tables and `user.role`, and creates the tables above. Production held no tracker data. Better Auth's tables, users and sessions are kept.
+- `0002_admin_disable` (additive) adds `user.disabled` and the `admins` table, seeded with the admin email.
 - From `0002` on, migrations are **additive only** (new tables, nullable columns, indexes). Anything destructive needs a new ADR and a backup first.

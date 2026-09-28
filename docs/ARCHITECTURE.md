@@ -87,6 +87,7 @@ docs/                          this
 ```
 requireUser()   → { id, name, email, image, teamId } or redirect("/")
                   (creates the caller's team on first use — INSERT … ON CONFLICT (owner_id) DO NOTHING)
+requireAdmin()  → the same user if their email is in `admins`, else notFound(); never redirects a signed-out user anywhere but "/"
 getTeam(id)     → the team with its owner's name and image, or null (malformed ids are null, never a query error)
 ```
 
@@ -94,6 +95,7 @@ The rule is **ownership** ([specs/teams.md](specs/teams.md)): every student read
 
 - Own-team writes (`createGoal`, `updateGoal`, `archiveGoal`, `unarchiveGoal`, `moveGoal`, `deleteGoal`, `toggleCompletion`, `createException`, `removeException`, `saveDocument`, `saveContractDates`) take **no team id**. They resolve the goal or exception with `WHERE id = $1 AND team_id = <session team>`; another team's id finds nothing and the action returns **"Goal not found."** / **"Exception not found."** without writing.
 - Check-ins (`checkIn`, `saveNote`) take the target `teamId`, reject the caller's own team with `Forbidden` and a missing team with **"Team not found."**, and write the session user as the partner — there is no user-id parameter.
+- `requireUser()` sends a disabled user to `/disabled`, and Better Auth's `session.create.before` hook refuses new sessions for them. `setUserDisabled(userId, disabled)` calls `requireAdmin()` first ([specs/admin.md](specs/admin.md)).
 - UI hiding is a courtesy: a teammate's pages simply render the same views with editing off.
 
 ## Time
