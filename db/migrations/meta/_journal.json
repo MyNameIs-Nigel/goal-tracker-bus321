@@ -15,6 +15,13 @@
       "when": 1790288520356,
       "tag": "0001_teams",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790635575103,
+      "tag": "0002_admin_disable",
+      "breakpoints": true
     }
   ]
 }

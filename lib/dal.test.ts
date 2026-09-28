@@ -54,6 +54,7 @@ test("TEAM-01 requireUser returns the session user with their own team, created 
     name: "Avery Adams",
     email: "avery@e2e.local",
     image: null,
+    disabled: false,
     teamId: "team-avery",
   });
   expect(ensureTeamMock).toHaveBeenCalledWith("user-avery");

@@ -12,7 +12,10 @@ class ForbiddenError extends Error {
   }
 }
 
-vi.mock("@/lib/dal", () => ({ requireAdmin: requireAdminMock, ForbiddenError }));
+vi.mock("@/lib/dal", () => ({
+  requireAdmin: requireAdminMock,
+  ForbiddenError,
+}));
 vi.mock("@/lib/queries/admin", () => ({ getAdminTarget: getTargetMock }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/db/client", () => ({

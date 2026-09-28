@@ -42,7 +42,7 @@ export async function listPartners(ownerId: string): Promise<PartnerSummary[]> {
     .select({ id: user.id, name: user.name, image: user.image })
     .from(user)
     .innerJoin(teams, eq(teams.ownerId, user.id))
-    .where(ne(user.id, ownerId))
+    .where(and(ne(user.id, ownerId), eq(user.disabled, false)))
     .orderBy(asc(user.name));
 }
 

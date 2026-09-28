@@ -34,7 +34,9 @@ test("ADM-01 lists users with status and a Disable button only on non-admins", (
   expect(screen.getByText("blake@e2e.local")).toBeTruthy();
   expect(screen.getAllByText("Active")).toHaveLength(2);
   expect(screen.getAllByRole("button", { name: /Disable/ })).toHaveLength(1);
-  expect(screen.getByRole("button", { name: "Disable Blake Brown" })).toBeTruthy();
+  expect(
+    screen.getByRole("button", { name: "Disable Blake Brown" }),
+  ).toBeTruthy();
 });
 
 test("ADM-03/05 Disable flips the row to Disabled with an Enable button, and back", async () => {

@@ -28,12 +28,19 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
+  // ADR-0006: a disabled user can't use the app; an admin toggles it.
+  disabled: boolean("disabled").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
+});
+
+/** ADR-0006: a user whose (lower-case) email is here is an admin. */
+export const admins = pgTable("admins", {
+  email: text("email").primaryKey(),
 });
 
 export const session = pgTable("session", {

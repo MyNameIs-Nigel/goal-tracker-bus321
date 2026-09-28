@@ -58,11 +58,12 @@ export async function getTeam(teamId: string): Promise<TeamSummary | null> {
   return row ?? null;
 }
 
-/** Every team, by owner name (TEAM-02). */
+/** Every team of an enabled student, by owner name (TEAM-02, ADM-03). */
 export async function listTeams(): Promise<TeamSummary[]> {
   return db
     .select(TEAM_COLUMNS)
     .from(teams)
     .innerJoin(user, eq(teams.ownerId, user.id))
+    .where(eq(user.disabled, false))
     .orderBy(asc(user.name));
 }

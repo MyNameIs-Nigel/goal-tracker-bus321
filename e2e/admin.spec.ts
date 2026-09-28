@@ -14,7 +14,9 @@ test("ADM-01 the admin sees every user", async ({ page, signInAs }) => {
   await expect(
     page.getByRole("button", { name: "Disable Blake Brown" }),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: /Disable Avery/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Disable Avery/ })).toHaveCount(
+    0,
+  );
 });
 
 test("ADM-02 anyone else gets a 404, and signed-out visitors go to /", async ({
@@ -35,7 +37,9 @@ test("ADM-03..05 disable, lock out, and re-enable a user", async ({
   await signInAs("avery");
   await page.goto("/admin");
   await page.getByRole("button", { name: "Disable Blake Brown" }).click();
-  await expect(page.getByRole("button", { name: "Enable Blake Brown" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Enable Blake Brown" }),
+  ).toBeVisible();
 
   await signInAs("casey");
   await page.goto("/today");
@@ -50,7 +54,9 @@ test("ADM-03..05 disable, lock out, and re-enable a user", async ({
   await signInAs("avery");
   await page.goto("/admin");
   await page.getByRole("button", { name: "Enable Blake Brown" }).click();
-  await expect(page.getByRole("button", { name: "Disable Blake Brown" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Disable Blake Brown" }),
+  ).toBeVisible();
 
   await signInAs("blake");
   await page.goto("/today");
@@ -72,7 +78,9 @@ test("ADM-04 an already signed-in user is sent to /disabled", async ({
   await admin.request.post("/api/e2e/sign-in", { data: { student: "avery" } });
   await admin.goto("/admin");
   await admin.getByRole("button", { name: "Disable Blake Brown" }).click();
-  await expect(admin.getByRole("button", { name: "Enable Blake Brown" })).toBeVisible();
+  await expect(
+    admin.getByRole("button", { name: "Enable Blake Brown" }),
+  ).toBeVisible();
   await adminContext.close();
 
   await page.goto("/today");
