@@ -8,6 +8,7 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { eq } from "drizzle-orm";
 import { nextCookies } from "better-auth/next-js";
 
 import { db } from "@/db/client";
@@ -45,6 +46,26 @@ export const auth = betterAuth({
   ...(isE2eEnabled()
     ? { emailAndPassword: { enabled: true, autoSignIn: false } }
     : {}),
+  // ADR-0006: `disabled` is set by an admin, never by a sign-up payload.
+  user: {
+    additionalFields: {
+      disabled: { type: "boolean", defaultValue: false, input: false },
+    },
+  },
+  databaseHooks: {
+    session: {
+      create: {
+        // ADM-04: a disabled user gets no new session.
+        before: async (newSession) => {
+          const [row] = await db
+            .select({ disabled: schema.user.disabled })
+            .from(schema.user)
+            .where(eq(schema.user.id, newSession.userId));
+          return row?.disabled ? false : undefined;
+        },
+      },
+    },
+  },
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 24, // refreshed on activity

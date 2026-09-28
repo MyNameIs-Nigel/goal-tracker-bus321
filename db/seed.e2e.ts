@@ -27,6 +27,7 @@ import { db } from "./client";
 import { buildDemo } from "./demo.e2e";
 import {
   account,
+  admins,
   checkins,
   completions,
   documents,
@@ -42,7 +43,7 @@ export async function seedE2e({ demo = false }: { demo?: boolean } = {}) {
   await db.execute(
     sql`TRUNCATE TABLE
       ${checkins}, ${completions}, ${exceptions}, ${goals}, ${documents},
-      ${teams}, ${session}, ${account}, ${verification}, ${user}
+      ${teams}, ${admins}, ${session}, ${account}, ${verification}, ${user}
     RESTART IDENTITY CASCADE`,
   );
 
@@ -65,6 +66,9 @@ export async function seedE2e({ demo = false }: { demo?: boolean } = {}) {
       contractStart: "2026-09-19",
     })),
   );
+
+  // Avery is the test admin (docs/specs/admin.md).
+  await db.insert(admins).values({ email: e2eEmail("avery") });
 
   if (demo) await seedDemo(userIds);
 }
