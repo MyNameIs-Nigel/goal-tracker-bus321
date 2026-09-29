@@ -47,10 +47,9 @@ function september(
       { id: "blake", name: "Blake Brown", image: null },
       { id: "casey", name: "Casey Clark", image: null },
     ],
-    checkins: [1, 2, 3].map((day) => ({
-      userId: "blake",
-      date: `2026-09-0${day}`,
-    })),
+    checkins: ["2026-09-01", "2026-09-02", "2026-09-03", "2026-09-19"].map(
+      (date) => ({ userId: "blake", date }),
+    ),
   });
 }
 
@@ -63,7 +62,7 @@ test("HIST-01 the calendar shows each day with an accessible status and a legend
   expect(screen.getByLabelText("September 21, excused")).toBeInTheDocument();
   expect(screen.getByLabelText("September 23, open")).toBeInTheDocument();
   expect(
-    screen.getByLabelText("September 1, not counting"),
+    screen.getByLabelText("September 1, outside contract"),
   ).toBeInTheDocument();
   const legend = screen.getByRole("list", { name: "Legend" });
   expect(legend).toHaveTextContent("Clean");
@@ -71,6 +70,7 @@ test("HIST-01 the calendar shows each day with an accessible status and a legend
   expect(legend).toHaveTextContent("Excused");
   expect(legend).toHaveTextContent("Open");
   expect(legend).toHaveTextContent("Not counting");
+  expect(legend).toHaveTextContent("Outside contract");
   for (const day of ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]) {
     expect(screen.getByText(day)).toBeInTheDocument();
   }
@@ -192,20 +192,29 @@ test("HIST-05 the table is absent with no weekly or monthly goals", () => {
   ).not.toBeInTheDocument();
 });
 
-test("PCI-09 the Partners block shows N of M days and a strip", () => {
-  render(<HistoryView data={september("2026-09-15")} />);
+test("PCI-09 the Partners block shows N of M contract days and a contribution grid", () => {
+  render(<HistoryView data={september("2026-09-23")} />);
   const section = screen.getByRole("region", { name: "Partners" });
-  expect(section).toHaveTextContent("Blake Brown — 3 of 15 days");
-  expect(section).toHaveTextContent("Casey Clark — 0 of 15 days");
+  expect(section).toHaveTextContent("Sep 19 – Sep 23");
+  // Blake's check-ins on 9/1–9/3 are before the contract and don't count.
+  expect(section).toHaveTextContent("Blake Brown — 1 of 5 days");
+  expect(section).toHaveTextContent("Casey Clark — 0 of 5 days");
   expect(
-    within(section).getByLabelText("Blake Brown, September 1, checked"),
+    within(section).getByLabelText("Blake Brown, September 19, checked"),
   ).toBeInTheDocument();
   expect(
-    within(section).getByLabelText("Blake Brown, September 4, not checked"),
+    within(section).getByLabelText("Blake Brown, September 20, not checked"),
   ).toBeInTheDocument();
   expect(
-    within(section).getByLabelText("Blake Brown, September 16, not yet"),
-  ).toBeInTheDocument();
+    within(section).queryByLabelText("Blake Brown, September 24, not yet"),
+  ).not.toBeInTheDocument(); // no contract end: the window stops at today
+  expect(
+    within(section).queryByLabelText("Blake Brown, September 18, not checked"),
+  ).not.toBeInTheDocument();
+  const grid = within(section).getByRole("table", {
+    name: "Blake Brown's check-ins",
+  });
+  expect(within(grid).getAllByRole("row")).toHaveLength(7);
 });
 
 test("HIST-06 no partners", () => {
@@ -240,4 +249,39 @@ test("HOVER-06 the month summary boxes take the border-only accent", () => {
     // Nothing here is clickable, so it must never gain a fill.
     expect(box, id).not.toHaveClass("ui-hover-surface");
   }
+});
+
+test("HIST-09 a day outside the contract is grayed out with a solid gray dot", () => {
+  render(<HistoryView data={september("2026-09-23")} />);
+  const outside = screen.getByLabelText("September 18, outside contract");
+  expect(outside).toHaveClass("opacity-50");
+  expect(outside.querySelector("[data-dot]")).toHaveClass("bg-muted");
+  const legend = screen.getByRole("list", { name: "Legend" });
+  const legendDot = within(legend)
+    .getByText("Outside contract")
+    .querySelector("[data-dot]");
+  expect(legendDot).toHaveClass("bg-muted");
+  const notCounting = within(legend)
+    .getByText("Not counting")
+    .querySelector("[data-dot]");
+  expect(notCounting).toHaveClass("border");
+  expect(notCounting).not.toHaveClass("bg-muted");
+});
+
+test("HIST-10 your own history links to the export; a teammate's does not", () => {
+  const { unmount } = render(<HistoryView data={september()} />);
+  expect(screen.getByRole("link", { name: "Export report" })).toHaveAttribute(
+    "href",
+    "/export",
+  );
+  unmount();
+  render(
+    <HistoryView
+      data={september()}
+      teamId="0e9f5c1a-2b3c-4d5e-8f60-718293a4b5c6"
+    />,
+  );
+  expect(
+    screen.queryByRole("link", { name: "Export report" }),
+  ).not.toBeInTheDocument();
 });

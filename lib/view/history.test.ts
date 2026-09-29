@@ -5,6 +5,7 @@ import {
   buildHistoryData,
   monthNav,
   parseMonth,
+  partnerWindow,
 } from "./history";
 
 const contract = { contractStart: "2026-09-19", contractEnd: null };
@@ -85,7 +86,8 @@ test("HIST-01 each day gets its status and an accessible label", () => {
   );
   expect(byDate["2026-09-01"]).toMatchObject({
     status: "none",
-    label: "September 1, not counting",
+    outsideContract: true,
+    label: "September 1, outside contract",
   });
   expect(byDate["2026-09-18"].status).toBe("none");
   expect(byDate["2026-09-19"]).toMatchObject({
@@ -255,56 +257,181 @@ test("HIST-05 an archived weekly goal only lists the periods it was alive for", 
   ]);
 });
 
-test("HIST-06 partners: N of M elapsed days and a day strip", () => {
-  const data = buildHistoryData({
-    month: "2026-09",
-    today: "2026-09-15",
-    goals: [],
-    contract,
-    completions: [],
-    exceptions: [],
-    partners: [alice, bob],
-    checkins: [
-      ...checkinsFor("alice", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
-      ...checkinsFor(
-        "bob",
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-      ),
-    ],
+function checkinsOn(userId: string, dates: string[]) {
+  return dates.map((date) => ({ userId, date }));
+}
+
+function datesFrom(start: string, count: number): string[] {
+  return Array.from({ length: count }, (_, i) => {
+    const d = new Date(`${start}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + i);
+    return d.toISOString().slice(0, 10);
   });
-  expect(data.partners.map((p) => [p.name, p.checked, p.elapsed])).toEqual([
-    ["Alice", 12, 15],
-    ["Bob", 15, 15],
-  ]);
-  const aliceDays = data.partners[0].days;
-  expect(aliceDays).toHaveLength(30);
-  expect(aliceDays.slice(0, 12).every((d) => d === "checked")).toBe(true);
-  expect(aliceDays.slice(12, 15)).toEqual(["missed", "missed", "missed"]);
-  expect(aliceDays.slice(15).every((d) => d === "future")).toBe(true);
+}
+
+const fullContract = { contractStart: "2026-09-19", contractEnd: "2026-11-19" };
+
+test("HIST-06 partner window: the contract, through today without an end, else the month", () => {
+  expect(partnerWindow("2026-09", "2026-10-03", fullContract)).toEqual({
+    start: "2026-09-19",
+    end: "2026-11-19",
+  });
+  expect(partnerWindow("2026-10", "2026-10-03", contract)).toEqual({
+    start: "2026-09-19",
+    end: "2026-10-03",
+  });
+  expect(partnerWindow("2026-09", "2026-09-10", contract)).toEqual({
+    start: "2026-09-19",
+    end: "2026-09-19",
+  });
+  expect(
+    partnerWindow("2026-09", "2026-10-03", {
+      contractStart: null,
+      contractEnd: null,
+    }),
+  ).toEqual({ start: "2026-09-01", end: "2026-09-30" });
 });
 
-test("HIST-06 a past month is fully elapsed; a future month has 0 elapsed days", () => {
+test("HIST-06 partners: N of M elapsed contract days, whatever the month", () => {
+  const elapsed = datesFrom("2026-09-19", 15); // 9/19 – 10/3
+  for (const month of ["2026-09", "2026-10"]) {
+    const data = buildHistoryData({
+      month,
+      today: "2026-10-03",
+      goals: [],
+      contract: fullContract,
+      completions: [],
+      exceptions: [],
+      partners: [alice, bob],
+      checkins: [
+        ...checkinsOn("alice", elapsed.slice(0, 12)),
+        ...checkinsOn("bob", elapsed),
+        ...checkinsOn("bob", ["2026-09-18"]), // before the contract: ignored
+      ],
+    });
+    expect(data.partnerRange).toBe("Sep 19 – Nov 19");
+    expect(
+      data.partners.map((p) => [p.name, p.checked, p.elapsed]),
+    ).toEqual([
+      ["Alice", 12, 15],
+      ["Bob", 15, 15],
+    ]);
+  }
+});
+
+test("HIST-06 the contribution grid: a column per week, Monday to Sunday", () => {
+  const data = buildHistoryData({
+    month: "2026-10",
+    today: "2026-10-03",
+    goals: [],
+    contract: fullContract,
+    completions: [],
+    exceptions: [],
+    partners: [alice],
+    checkins: checkinsOn("alice", ["2026-09-19", "2026-10-03"]),
+  });
+  const { weeks } = data.partners[0];
+  expect(weeks).toHaveLength(10);
+  expect(weeks.every((week) => week.length === 7)).toBe(true);
+  // Week of Mon 9/14: Mon–Fri before the contract are blank.
+  expect(weeks[0].slice(0, 5)).toEqual([null, null, null, null, null]);
+  expect(weeks[0][5]).toEqual({ date: "2026-09-19", state: "checked" });
+  expect(weeks[0][6]).toEqual({ date: "2026-09-20", state: "missed" });
+  expect(weeks[2][5]).toEqual({ date: "2026-10-03", state: "checked" });
+  expect(weeks[2][6]).toEqual({ date: "2026-10-04", state: "future" });
+  // Week of Mon 11/16: through Thu 11/19, then blank.
+  expect(weeks[9][3]).toEqual({ date: "2026-11-19", state: "future" });
+  expect(weeks[9].slice(4)).toEqual([null, null, null]);
+});
+
+test("HIST-06 the window label carries years when it crosses one", () => {
+  const data = buildHistoryData({
+    month: "2026-12",
+    today: "2026-12-05",
+    goals: [],
+    contract: { contractStart: "2026-12-01", contractEnd: "2027-01-31" },
+    completions: [],
+    exceptions: [],
+    partners: [],
+    checkins: [],
+  });
+  expect(data.partnerRange).toBe("Dec 1, 2026 – Jan 31, 2027");
+});
+
+test("HIST-06 without a contract start the window is the month", () => {
   const past = buildHistoryData({
     month: "2026-09",
     today: "2026-10-05",
     goals: [],
-    contract,
+    contract: { contractStart: null, contractEnd: null },
     completions: [],
     exceptions: [],
     partners: [alice],
     checkins: checkinsFor("alice", [30]),
   });
   expect(past.partners[0]).toMatchObject({ checked: 1, elapsed: 30 });
+  expect(past.partnerRange).toBe("Sep 1 – Sep 30");
+});
 
-  const future = buildHistoryData({
-    month: "2026-11",
-    today: "2026-10-05",
+test("HIST-09 days before the contract start or after its end are outside the contract", () => {
+  const data = buildHistoryData({
+    month: "2026-09",
+    today: "2026-09-23",
+    goals: [{ ...readGoal, startsOn: "2026-09-19" }],
+    contract: { contractStart: "2026-09-19", contractEnd: "2026-09-27" },
+    completions: [],
+    exceptions: [],
+    partners: [],
+    checkins: [],
+  });
+  const byDate = Object.fromEntries(
+    data.weeks
+      .flat()
+      .filter((cell) => cell !== null)
+      .map((cell) => [cell.date, cell]),
+  );
+  expect(byDate["2026-09-18"]).toMatchObject({
+    outsideContract: true,
+    label: "September 18, outside contract",
+  });
+  expect(byDate["2026-09-19"].outsideContract).toBe(false);
+  expect(byDate["2026-09-27"].outsideContract).toBe(false);
+  expect(byDate["2026-09-28"]).toMatchObject({
+    outsideContract: true,
+    label: "September 28, outside contract",
+  });
+});
+
+test("HIST-09 an in-contract day with no counting goals is still not counting", () => {
+  const data = buildHistoryData({
+    month: "2026-09",
+    today: "2026-09-23",
     goals: [],
     contract,
     completions: [],
     exceptions: [],
-    partners: [alice],
+    partners: [],
     checkins: [],
   });
-  expect(future.partners[0]).toMatchObject({ checked: 0, elapsed: 0 });
+  const cell = data.weeks.flat().find((c) => c?.date === "2026-09-20")!;
+  expect(cell).toMatchObject({
+    outsideContract: false,
+    label: "September 20, not counting",
+  });
+});
+
+test("HIST-09 with no contract dates no day is outside the contract", () => {
+  const data = buildHistoryData({
+    month: "2026-09",
+    today: "2026-09-23",
+    goals: [readGoal],
+    contract: { contractStart: null, contractEnd: null },
+    completions: [],
+    exceptions: [],
+    partners: [],
+    checkins: [],
+  });
+  expect(
+    data.weeks.flat().some((cell) => cell?.outsideContract),
+  ).toBe(false);
 });

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import UserMenu from "./UserMenu";
 
@@ -69,4 +69,12 @@ test("AUTH-12 the profile shows name, email and team", () => {
   expect(profile).toHaveTextContent("Avery Adams");
   expect(profile).toHaveTextContent("avery@e2e.local");
   expect(profile).toHaveTextContent("Team Avery");
+});
+
+test("EXP-01 the profile menu links to the export", () => {
+  open();
+  const profile = screen.getByRole("region", { name: "Your profile" });
+  expect(
+    within(profile).getByRole("link", { name: "Export report" }),
+  ).toHaveAttribute("href", "/export");
 });
