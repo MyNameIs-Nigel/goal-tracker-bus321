@@ -8,8 +8,8 @@ export default function DisabledPage() {
         Sorry, you need to ask the admin for access.
       </h1>
       <p className="text-sm text-muted">
-        You&apos;re signed in, but the admin hasn&apos;t turned your account on yet. Once
-        they do, reload this page.
+        You&apos;re signed in, but the admin hasn&apos;t turned your account on
+        yet. Once they do, reload this page.
       </p>
       <DisabledSignOut />
     </main>
