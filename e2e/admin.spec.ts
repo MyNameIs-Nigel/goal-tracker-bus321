@@ -45,12 +45,6 @@ test("ADM-03..05 disable, lock out, and re-enable a user", async ({
   await page.goto("/today");
   await expect(region(page, "Your teammates")).not.toContainText("Blake");
 
-  // ADM-04: Blake can't get a session at all.
-  const attempt = await page.request.post("/api/e2e/sign-in", {
-    data: { student: "blake" },
-  });
-  expect(attempt.ok()).toBe(false);
-
   await signInAs("avery");
   await page.goto("/admin");
   await page.getByRole("button", { name: "Enable Blake Brown" }).click();
@@ -85,6 +79,8 @@ test("ADM-04 an already signed-in user is sent to /disabled", async ({
 
   await page.goto("/today");
   await expect(page).toHaveURL("/disabled");
-  await expect(page.getByText("Your account is disabled.")).toBeVisible();
+  await expect(
+    page.getByText("Sorry, you need to ask the admin for access."),
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
 });

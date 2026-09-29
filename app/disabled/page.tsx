@@ -5,10 +5,11 @@ export default function DisabledPage() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col items-center justify-center gap-4 px-5 text-center">
       <h1 className="text-xl font-semibold tracking-tight">
-        Your account is disabled.
+        Sorry, you need to ask the admin for access.
       </h1>
       <p className="text-sm text-muted">
-        Ask the admin if you think this is a mistake.
+        You&apos;re signed in, but the admin hasn&apos;t turned your account on yet. Once
+        they do, reload this page.
       </p>
       <DisabledSignOut />
     </main>
