@@ -254,7 +254,7 @@ test("HOVER-06 the month summary boxes take the border-only accent", () => {
 test("HIST-09 a day outside the contract is grayed out with a solid gray dot", () => {
   render(<HistoryView data={september("2026-09-23")} />);
   const outside = screen.getByLabelText("September 18, outside contract");
-  expect(outside).toHaveClass("opacity-50");
+  expect(outside).toHaveClass("bg-border/50");
   expect(outside.querySelector("[data-dot]")).toHaveClass("bg-muted");
   const legend = screen.getByRole("list", { name: "Legend" });
   const legendDot = within(legend)

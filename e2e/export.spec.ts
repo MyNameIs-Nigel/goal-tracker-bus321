@@ -49,18 +49,21 @@ test("EXP-01 the profile menu links to the export", async ({
   ).toBeVisible();
 });
 
-test("EXP-02 the default range is the contract", async ({
-  page,
-  signInAs,
-}) => {
+test("EXP-02 the default range is the contract", async ({ page, signInAs }) => {
   await resetAt(page, FIXED_NOW);
   await signInAs("avery");
   await setContractEnd(page, "2026-11-19");
   await page.goto("/export");
-  await expect(page.getByLabel("From")).toHaveValue("2026-09-19");
-  await expect(page.getByLabel("To")).toHaveValue("2026-11-19");
+  await expect(page.getByLabel("From", { exact: true })).toHaveValue(
+    "2026-09-19",
+  );
+  await expect(page.getByLabel("To", { exact: true })).toHaveValue(
+    "2026-11-19",
+  );
   await expect(page.getByText("Avery Adams · Team Avery")).toBeVisible();
-  await expect(page.getByText("Sep 19, 2026 – Nov 19, 2026")).toBeVisible();
+  await expect(
+    page.getByText("Sep 19, 2026 – Nov 19, 2026", { exact: true }),
+  ).toBeVisible();
 });
 
 test("EXP-04 a custom range", async ({ page, signInAs }) => {
@@ -69,8 +72,8 @@ test("EXP-04 a custom range", async ({ page, signInAs }) => {
   await page.goto("/goals");
   await addGoal(page, { title: "Read 20 pages", startsOn: "2026-09-19" });
   await page.goto("/export");
-  await page.getByLabel("From").fill("2026-09-20");
-  await page.getByLabel("To").fill("2026-09-22");
+  await page.getByLabel("From", { exact: true }).fill("2026-09-20");
+  await page.getByLabel("To", { exact: true }).fill("2026-09-22");
   await page.getByRole("button", { name: "Update" }).click();
   await expect(page).toHaveURL(/\/export\?from=2026-09-20&to=2026-09-22$/);
   const log = page.getByRole("region", { name: "Daily log" });
@@ -124,7 +127,9 @@ test("EXP-13 Download PDF prints just the report", async ({
   });
   await page.getByRole("button", { name: "Download PDF" }).click();
   expect(
-    await page.evaluate(() => (window as unknown as { printed: number }).printed),
+    await page.evaluate(
+      () => (window as unknown as { printed: number }).printed,
+    ),
   ).toBe(1);
 
   await page.emulateMedia({ media: "print", colorScheme: "dark" });

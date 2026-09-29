@@ -3,7 +3,7 @@ import Link from "next/link";
 import { formatMonthLong, formatMonthName } from "@/lib/dates";
 import { teamPaths } from "@/lib/paths";
 import type { DayStatus, Status } from "@/lib/status";
-import type { HistoryData } from "@/lib/view/history";
+import type { HistoryData, PartnerDay } from "@/lib/view/history";
 
 /** Cell colours: one calm accent for clean; the rest stay quiet (HIST-01 § UI). */
 const DOT: Record<DayStatus, string> = {
@@ -15,13 +15,29 @@ const DOT: Record<DayStatus, string> = {
   none: "border border-border",
 };
 
-const LEGEND: { label: string; status: DayStatus }[] = [
-  { label: "Clean", status: "clean" },
-  { label: "Missed", status: "missed" },
-  { label: "Excused", status: "excused" },
-  { label: "Open", status: "open" },
-  { label: "Not counting", status: "none" },
+/** HIST-09 — solid gray, distinct from the hollow "not counting" dot. */
+const OUTSIDE_DOT = "bg-muted";
+
+const LEGEND: { label: string; dot: string }[] = [
+  { label: "Clean", dot: DOT.clean },
+  { label: "Missed", dot: DOT.missed },
+  { label: "Excused", dot: DOT.excused },
+  { label: "Open", dot: DOT.open },
+  { label: "Not counting", dot: DOT.none },
+  { label: "Outside contract", dot: OUTSIDE_DOT },
 ];
+
+const PARTNER_SQUARE: Record<PartnerDay["state"], string> = {
+  checked: "bg-accent",
+  missed: "bg-border",
+  future: "border border-border",
+};
+
+const PARTNER_STATE: Record<PartnerDay["state"], string> = {
+  checked: "checked",
+  missed: "not checked",
+  future: "not yet",
+};
 
 const STATUS_LABEL: Record<Status, string> = {
   done: "Done",
@@ -61,6 +77,11 @@ export default function HistoryView({
           aria-label="Months"
           className="flex items-center gap-3 text-sm font-medium text-muted"
         >
+          {teamId === null && (
+            <Link href="/export" className="ui-hover-accent text-accent">
+              Export report
+            </Link>
+          )}
           {nav.prev && (
             <Link href={paths.history(nav.prev)} className="ui-hover-accent">
               ← {formatMonthName(`${nav.prev}-01`)}
@@ -89,12 +110,17 @@ export default function HistoryView({
                 aria-label={cell.label}
                 className={`ui-hover-outline flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg text-sm ${
                   cell.isToday ? "ring-2 ring-accent" : ""
-                } ${cell.status === "none" ? "text-muted" : ""}`}
+                } ${cell.status === "none" ? "text-muted" : ""} ${
+                  cell.outsideContract ? "bg-border/50 text-muted" : ""
+                }`}
               >
                 <span>{cell.day}</span>
                 <span
                   aria-hidden
-                  className={`h-2.5 w-2.5 rounded-full ${DOT[cell.status]}`}
+                  data-dot
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    cell.outsideContract ? OUTSIDE_DOT : DOT[cell.status]
+                  }`}
                 />
               </Link>
             ) : (
@@ -107,10 +133,11 @@ export default function HistoryView({
           className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted"
         >
           {LEGEND.map((item) => (
-            <li key={item.status} className="flex items-center gap-1.5">
+            <li key={item.label} className="flex items-center gap-1.5">
               <span
                 aria-hidden
-                className={`h-2.5 w-2.5 rounded-full ${DOT[item.status]}`}
+                data-dot
+                className={`h-2.5 w-2.5 rounded-full ${item.dot}`}
               />
               {item.label}
             </li>
@@ -210,16 +237,19 @@ export default function HistoryView({
         aria-labelledby="partners-heading"
         className="flex flex-col gap-2"
       >
-        <h2
-          id="partners-heading"
-          className="text-sm font-semibold uppercase tracking-wide text-muted"
-        >
-          Partners
-        </h2>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2
+            id="partners-heading"
+            className="text-sm font-semibold uppercase tracking-wide text-muted"
+          >
+            Partners
+          </h2>
+          <p className="text-xs text-muted">{data.partnerRange}</p>
+        </div>
         {data.partners.length === 0 ? (
           <p className="text-muted">No partners yet.</p>
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-4">
             {data.partners.map((partner) => (
               <li key={partner.id} className="flex flex-col gap-1.5">
                 <p className="text-sm">
@@ -230,30 +260,35 @@ export default function HistoryView({
                     {partner.elapsed === 1 ? "" : "s"}
                   </span>
                 </p>
-                <div className="flex flex-wrap gap-1">
-                  {partner.days.map((day, index) => {
-                    const date = `${data.month}-${String(index + 1).padStart(2, "0")}`;
-                    const state =
-                      day === "checked"
-                        ? "checked"
-                        : day === "missed"
-                          ? "not checked"
-                          : "not yet";
-                    return (
-                      <span
-                        key={date}
-                        role="img"
-                        aria-label={`${partner.name}, ${formatMonthLong(date)}, ${state}`}
-                        className={`h-2.5 w-2.5 rounded-sm ${
-                          day === "checked"
-                            ? "bg-accent"
-                            : day === "missed"
-                              ? "bg-border"
-                              : "border border-border"
-                        }`}
-                      />
-                    );
-                  })}
+                <div className="max-w-full overflow-x-auto">
+                  {/* A contribution grid: a column per week, Mon–Sun rows. */}
+                  <div
+                    role="table"
+                    aria-label={`${partner.name}'s check-ins`}
+                    className="flex w-max flex-col gap-1"
+                  >
+                    {WEEKDAYS.map((weekday, row) => (
+                      <div key={weekday} role="row" className="flex gap-1">
+                        {partner.weeks.map((week, column) => {
+                          const day = week[row];
+                          return day ? (
+                            <span
+                              key={day.date}
+                              role="cell"
+                              aria-label={`${partner.name}, ${formatMonthLong(day.date)}, ${PARTNER_STATE[day.state]}`}
+                              className={`h-2.5 w-2.5 rounded-sm ${PARTNER_SQUARE[day.state]}`}
+                            />
+                          ) : (
+                            <span
+                              key={`pad-${column}`}
+                              role="cell"
+                              className="h-2.5 w-2.5"
+                            />
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </li>
             ))}

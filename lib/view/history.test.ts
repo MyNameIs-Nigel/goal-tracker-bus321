@@ -310,9 +310,7 @@ test("HIST-06 partners: N of M elapsed contract days, whatever the month", () =>
       ],
     });
     expect(data.partnerRange).toBe("Sep 19 – Nov 19");
-    expect(
-      data.partners.map((p) => [p.name, p.checked, p.elapsed]),
-    ).toEqual([
+    expect(data.partners.map((p) => [p.name, p.checked, p.elapsed])).toEqual([
       ["Alice", 12, 15],
       ["Bob", 15, 15],
     ]);
@@ -431,7 +429,5 @@ test("HIST-09 with no contract dates no day is outside the contract", () => {
     partners: [],
     checkins: [],
   });
-  expect(
-    data.weeks.flat().some((cell) => cell?.outsideContract),
-  ).toBe(false);
+  expect(data.weeks.flat().some((cell) => cell?.outsideContract)).toBe(false);
 });

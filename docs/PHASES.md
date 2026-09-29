@@ -65,8 +65,8 @@ The planned owner-reminders phase was dropped ([ADR-0005](adr/0005-every-student
 **Specs:** [export](specs/export.md) (new), [history](specs/history.md) (HIST-01's legend, HIST-06's contract-wide partner grid, HIST-09, HIST-10), [partner-check-ins](specs/partner-check-ins.md) (PCI-09).
 
 **Exit criteria:**
-- [ ] Every `EXP-*` and the new `HIST-*` scenarios have passing tests, and all checks are green in CI.
-- [ ] At phone width, with demo data: `/history` → **Export report** → **Download PDF** opens the print dialog with just the report; **Download CSV** downloads the file.
+- [ ] Every `EXP-*` and the new `HIST-*` scenarios have passing tests, and all checks are green in CI. — locally: 140/140 scenarios named; lint, format, typecheck, 338 unit/component tests, build, and 200 Playwright tests (desktop + Pixel 7) green against a real Postgres. CI pending on the PR.
+- [x] At phone width, with demo data: `/history` → **Export report** → **Download PDF** opens the print dialog with just the report; **Download CSV** downloads the file. — verified by EXP-13/EXP-14 in both Playwright projects, and by eye at 390px in light and dark, plus the print render.
 
 ---
 

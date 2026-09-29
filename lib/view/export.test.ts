@@ -83,9 +83,9 @@ function september(overrides: Partial<ExportInput> = {}) {
 const noGoals = { goals: [] };
 
 test("EXP-02 the default range is the contract", () => {
-  expect(
-    parseRange({}, { today: "2026-09-29", contract, ...noGoals }),
-  ).toEqual({ from: "2026-09-19", to: "2026-11-19" });
+  expect(parseRange({}, { today: "2026-09-29", contract, ...noGoals })).toEqual(
+    { from: "2026-09-19", to: "2026-11-19" },
+  );
 });
 
 test("EXP-03 no contract end runs to today", () => {
@@ -149,9 +149,10 @@ test("EXP-05 invalid dates take their defaults", () => {
     from: "2026-09-19",
     to: "2026-11-19",
   });
-  expect(
-    parseRange({ from: ["2026-09-21", "2026-09-22"] }, context),
-  ).toEqual({ from: "2026-09-19", to: "2026-11-19" });
+  expect(parseRange({ from: ["2026-09-21", "2026-09-22"] }, context)).toEqual({
+    from: "2026-09-19",
+    to: "2026-11-19",
+  });
 });
 
 test("EXP-05 a reversed range is swapped", () => {
@@ -237,7 +238,12 @@ test("EXP-08 each goal with a period in range, with its record", () => {
     startsOn: "2026-09-19",
     endsOn: "2026-10-03",
   };
-  const later = { ...walkGoal, id: "d6", title: "Later", startsOn: "2026-12-01" };
+  const later = {
+    ...walkGoal,
+    id: "d6",
+    title: "Later",
+    startsOn: "2026-12-01",
+  };
   const { goals } = september({
     goals: [readGoal, gymGoal, archived, later],
   });
@@ -328,7 +334,11 @@ test("EXP-09 the Check-ins column lists partners' first names", () => {
       { userId: "blake", date: "2026-09-22", note: null },
       { userId: "gone", date: "2026-09-23", note: null },
     ],
-    partners: [blake, casey, { id: "gone", name: "Former Student", image: null }],
+    partners: [
+      blake,
+      casey,
+      { id: "gone", name: "Former Student", image: null },
+    ],
   });
   const byDate = Object.fromEntries(
     data.months[0].days.map((day) => [day.date, day]),
@@ -375,7 +385,11 @@ test("EXP-12 check-ins you made are absent unless asked for", () => {
     ],
   });
   expect(given).toEqual([
-    { team: "Team Blake", days: 2, entries: ["Sep 21", "Sep 22 — Keep going!"] },
+    {
+      team: "Team Blake",
+      days: 2,
+      entries: ["Sep 21", "Sep 22 — Keep going!"],
+    },
     { team: "Team Casey", days: 1, entries: ["Sep 24"] },
   ]);
 });

@@ -40,9 +40,7 @@ test("HIST-01 the calendar shows day statuses with a legend", async ({
   await expect(page.getByLabel("September 22, clean")).toBeVisible();
   await expect(page.getByLabel("September 23, open")).toBeVisible();
   await expect(page.getByLabel("September 24, upcoming")).toBeVisible();
-  await expect(
-    page.getByLabel("September 18, outside contract"),
-  ).toBeVisible();
+  await expect(page.getByLabel("September 18, outside contract")).toBeVisible();
   const legend = page.getByRole("list", { name: "Legend" });
   for (const item of [
     "Clean",
@@ -247,7 +245,7 @@ test("HIST-09 days outside the contract are grayed out; in-contract empty days a
   await page.goto("/history");
   const outside = page.getByLabel("September 18, outside contract");
   await expect(outside).toBeVisible();
-  await expect(outside).toHaveClass(/opacity-50/);
+  await expect(outside).toHaveClass(/bg-border\/50/);
   await expect(page.getByLabel("September 20, not counting")).toBeVisible();
 });
 

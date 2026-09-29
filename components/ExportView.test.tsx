@@ -72,9 +72,7 @@ test("EXP-02 the header and the range form", () => {
     screen.getByRole("heading", { level: 1, name: "Goal report" }),
   ).toBeInTheDocument();
   expect(screen.getByText("Avery Adams · Team Avery")).toBeInTheDocument();
-  expect(
-    screen.getByText("Sep 17, 2026 – Sep 30, 2026"),
-  ).toBeInTheDocument();
+  expect(screen.getByText("Sep 17, 2026 – Sep 30, 2026")).toBeInTheDocument();
   expect(screen.getByLabelText("From")).toHaveValue("2026-09-17");
   expect(screen.getByLabelText("To")).toHaveValue("2026-09-30");
   const form = screen.getByRole("form", { name: "Report options" });
@@ -130,13 +128,19 @@ test("EXP-09 the daily log marks each goal and grays days outside the contract",
   const row = (label: string) =>
     within(log).getByRole("row", { name: new RegExp(`^${label}`) });
   expect(row("Fri, Sep 18")).toHaveTextContent("Outside contract");
-  expect(row("Fri, Sep 18")).toHaveClass("opacity-50");
+  expect(row("Fri, Sep 18")).toHaveClass("text-muted");
   expect(row("Sat, Sep 19")).toHaveTextContent("Done");
   expect(row("Sun, Sep 20")).toHaveTextContent("Missed");
   expect(row("Mon, Sep 21")).toHaveTextContent("Excused");
   expect(row("Tue, Sep 22")).toHaveTextContent("Blake");
   const legend = within(log).getByRole("list", { name: "Legend" });
-  for (const text of ["✓ Done", "✗ Missed", "E Excused", "· Pending", "– Not counting"]) {
+  for (const text of [
+    "✓ Done",
+    "✗ Missed",
+    "E Excused",
+    "· Pending",
+    "– Not counting",
+  ]) {
     expect(legend).toHaveTextContent(text);
   }
 });
