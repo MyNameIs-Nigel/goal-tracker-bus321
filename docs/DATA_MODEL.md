@@ -16,7 +16,7 @@ Every student owns exactly one **team** ([ADR-0005](adr/0005-every-student-owns-
 
 ### Managed by Better Auth (shape per its docs at implementation time)
 
-`user`, `session`, `account`, `verification`, unchanged from Better Auth's defaults. `user` carries `name`, `email` (unique), `image` (avatar URL) and `created_at` from Google. There is no role column ([ADR-0005](adr/0005-every-student-owns-a-team.md) T3). One app column is added: `disabled` (boolean, not null, default `false`) — a disabled user cannot use the app ([ADR-0006](adr/0006-admin-can-disable-users.md), [specs/admin.md](specs/admin.md)).
+`user`, `session`, `account`, `verification`, unchanged from Better Auth's defaults. `user` carries `name`, `email` (unique), `image` (avatar URL) and `created_at` from Google. There is no role column ([ADR-0005](adr/0005-every-student-owns-a-team.md) T3). One app column is added: `disabled` (boolean, not null, default `false`) — a disabled user cannot use the app; new users are created `true` unless their email is in `admins` or the app is in test mode ([ADR-0006](adr/0006-admin-can-disable-users.md), [specs/admin.md](specs/admin.md)).
 
 A **student** is a `user` that owns a team.
 

@@ -30,8 +30,8 @@ Let the admin — an email listed in the database — turn a student's access of
 ### ADM-04 A disabled user is locked out
 - **Given** Blake is disabled
 - **When** he opens any signed-in page, such as `/today`
-- **Then** he is on `/disabled`, which reads **"Your account is disabled."** with a **"Sign out"** button
-- **And** a new sign-in as Blake creates no session
+- **Then** he is on `/disabled`, which reads **"Sorry, you need to ask the admin for access."** with a **"Sign out"** button, and no team or data is created or shown for him
+- **And** signing in again lands on `/disabled` too — a disabled user can sign in, but can do nothing else
 
 ### ADM-05 Enabling restores everything
 - **Given** Blake is disabled and has goals
@@ -47,6 +47,13 @@ Let the admin — an email listed in the database — turn a student's access of
 - **Given** Avery, an admin
 - **When** `setUserDisabled` targets herself or another admin, or a user that doesn't exist
 - **Then** it returns **"You can't disable an admin."** or **"User not found."** and nothing is written
+
+### ADM-08 New accounts start disabled
+- **Given** a Google account that has never signed in, whose email is not in `admins`
+- **When** it completes sign-in
+- **Then** its `user` row has `disabled = true`, no team is created, and the browser lands on `/disabled`
+- **And** it shows on `/admin` as **Disabled**, and **"Enable"** gives it the normal app (ADM-05)
+- **But** an email in `admins` is created enabled, so the admin is never locked out on first sign-in; and in test mode (`E2E_AUTH=1`) new users are created enabled
 
 ## UI
 

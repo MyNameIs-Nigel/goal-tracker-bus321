@@ -23,7 +23,9 @@ Let any classmate open the link, tap one button, and be in — on their own toda
 ### AUTH-03 First sign-in creates a student and their team
 - **Given** a Google account that has never signed in
 - **When** it completes Google sign-in
-- **Then** a `user` row exists with that email, Google's name and avatar, a `teams` row is owned by it, and the browser lands on `/today` ([teams.md TEAM-01](teams.md))
+- **Then** a `user` row exists with that email, Google's name and avatar, **disabled** until the admin enables it, and the browser lands on `/disabled` ([admin.md ADM-08](admin.md))
+- **And** once enabled, the first page load creates its `teams` row ([teams.md TEAM-01](teams.md))
+- **But** an admin's email is created enabled, and so is every user in test mode
 
 ### AUTH-05 Signed-in visitors skip the sign-in page
 - **Given** a valid session
