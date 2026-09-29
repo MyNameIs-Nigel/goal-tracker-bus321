@@ -58,10 +58,10 @@ Two Server Actions in `lib/actions/checkins.ts`, both starting with `requireUser
 - **When** "Check in" is pressed twice quickly
 - **Then** exactly one row exists (unique constraint) and the UI shows one check
 
-### PCI-09 History shows the month's check-ins on a team
-- **Given** September with Blake checked on Avery on 12 of the 15 elapsed days
-- **When** anyone opens Avery's history for `2026-09` (`/history?month=2026-09` for Avery, `/team/<id>/history?month=2026-09` for others)
-- **Then** the Partners block shows **"Blake Brown — 12 of 15 days"** and a strip of day markers (*M* = elapsed days of the month, defined in [history.md § Definitions](history.md#definitions))
+### PCI-09 History shows a team's check-ins over the contract
+- **Given** Avery's contract starts 2026-09-19 (no end), today is 2026-09-23, and Blake checked in on Avery on 3 of the 5 elapsed days
+- **When** anyone opens Avery's history (`/history` for Avery, `/team/<id>/history` for others), for any month
+- **Then** the Partners block shows **"Blake Brown — 3 of 5 days"** and a contribution grid of those days (*M* = elapsed days of the contract window, defined in [history.md § Definitions](history.md#definitions))
 
 ### PCI-10 Checked on you
 - **Given** Blake checked in on Avery today at 8:12 PM with the note "Nice streak, keep it up", and Casey hasn't

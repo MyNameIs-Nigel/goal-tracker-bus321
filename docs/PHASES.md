@@ -14,7 +14,7 @@ The plan for taking this from a blank `create-next-app` to a live tracker at `ht
 | 3 | Partners, contract & vision, history | ✅ done 2026-09-16 |
 | 4 | Launch polish | ✅ done 2026-09-17 |
 | 5 | **Teams** — every student owns a team | 🔄 in progress (started at Nigel's request 2026-09-24) |
-| — | **Export** — printable report + CSV; history grays out days outside the contract | 🔄 in progress (Nigel's request 2026-09-29) |
+| — | **Export** — printable report + CSV; history grays out days outside the contract and shows partners over the whole contract | 🔄 in progress (Nigel's request 2026-09-29) |
 | — | Release | whenever Nigel shares the link |
 
 Claude updates this table as phases start and finish (✅ done, 🔄 in progress).
@@ -60,9 +60,9 @@ The planned owner-reminders phase was dropped ([ADR-0005](adr/0005-every-student
 
 ## Export (Nigel's request, 2026-09-29)
 
-**Goal:** turning in the accountability report takes one tap. `/export` renders the student's whole record for their contract (or a custom range) as a document the browser saves as a PDF, with the same data as a CSV; it's reached from `/history` and the profile menu. Alongside it, the history calendar grays out days outside the contract with a solid gray dot so it's clear they never count.
+**Goal:** turning in the accountability report takes one tap. `/export` renders the student's whole record for their contract (or a custom range) as a document the browser saves as a PDF, with the same data as a CSV; it's reached from `/history` and the profile menu. Alongside it, the history calendar grays out days outside the contract with a solid gray dot so it's clear they never count, and the history's Partners block covers the whole contract as a GitHub-style contribution grid instead of the month.
 
-**Specs:** [export](specs/export.md) (new), [history](specs/history.md) (HIST-01's legend, HIST-09, HIST-10).
+**Specs:** [export](specs/export.md) (new), [history](specs/history.md) (HIST-01's legend, HIST-06's contract-wide partner grid, HIST-09, HIST-10), [partner-check-ins](specs/partner-check-ins.md) (PCI-09).
 
 **Exit criteria:**
 - [ ] Every `EXP-*` and the new `HIST-*` scenarios have passing tests, and all checks are green in CI.
