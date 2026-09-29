@@ -80,6 +80,7 @@ test("LAUNCH-03 your own and a teammate's routes pass accessibility in light and
     "/goals",
     "/contract",
     "/history",
+    "/export",
     teamPath("blake"),
     teamPath("blake", "/contract"),
     teamPath("blake", "/history"),

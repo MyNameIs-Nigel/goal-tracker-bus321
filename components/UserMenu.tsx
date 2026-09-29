@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -9,7 +10,7 @@ import { signOut } from "@/lib/auth-client";
 import type { SessionUser } from "@/lib/dal";
 import { initials } from "@/lib/format";
 
-/** AUTH-12 — avatar (or initials), name, email and team; AUTH-06 sign-out. */
+/** AUTH-12 — avatar (or initials), name, email and team; EXP-01 export; AUTH-06 sign-out. */
 export default function UserMenu({
   name,
   email,
@@ -70,6 +71,13 @@ export default function UserMenu({
           <p className="truncate text-sm font-medium">{name}</p>
           <p className="truncate text-xs text-muted">{email}</p>
           <p className="mt-1 text-xs text-muted">{teamName}</p>
+          <Link
+            href="/export"
+            onClick={() => setOpen(false)}
+            className="ui-hover-surface mt-3 flex min-h-11 w-full items-center rounded-full border border-border px-3 py-1.5 text-sm font-medium"
+          >
+            Export report
+          </Link>
           <ThemeSelector />
           <button
             type="button"

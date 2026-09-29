@@ -40,9 +40,16 @@ test("HIST-01 the calendar shows day statuses with a legend", async ({
   await expect(page.getByLabel("September 22, clean")).toBeVisible();
   await expect(page.getByLabel("September 23, open")).toBeVisible();
   await expect(page.getByLabel("September 24, upcoming")).toBeVisible();
-  await expect(page.getByLabel("September 18, not counting")).toBeVisible();
+  await expect(page.getByLabel("September 18, outside contract")).toBeVisible();
   const legend = page.getByRole("list", { name: "Legend" });
-  for (const item of ["Clean", "Missed", "Excused", "Open", "Not counting"]) {
+  for (const item of [
+    "Clean",
+    "Missed",
+    "Excused",
+    "Open",
+    "Not counting",
+    "Outside contract",
+  ]) {
     await expect(legend.getByText(item, { exact: true })).toBeVisible();
   }
 });
@@ -157,35 +164,36 @@ test("HIST-05 weekly and monthly goals are tabled with a status", async ({
   ).toContainText("Not counting");
 });
 
-test("PCI-09 a team's history shows each partner's N of M days and a strip", async ({
+test("PCI-09 a team's history shows each partner's check-ins over the contract", async ({
   page,
   signInAs,
 }) => {
-  await resetAt(page, "2026-09-15T18:00:00Z");
+  await resetAt(page, FIXED_NOW); // 9/23; contract from 9/19, no end
   await signInAs("blake");
   await page.goto("/today");
   await page.getByRole("button", { name: "Check in on Avery" }).click();
   await expect(page.getByText(/Checked ✓/)).toBeVisible();
 
-  // Blake reads it on Avery's team history; Avery on her own.
+  // Blake reads it on Avery's team history; Avery on her own, any month.
   for (const [student, path] of [
     ["blake", teamPath("avery", "/history?month=2026-09")],
-    ["avery", "/history?month=2026-09"],
+    ["avery", "/history"],
   ] as const) {
     await signInAs(student);
     await page.goto(path);
     const partners = page.getByRole("region", { name: "Partners" });
-    await expect(partners).toContainText("Blake Brown — 1 of 15 days");
-    await expect(partners).toContainText("Casey Clark — 0 of 15 days");
+    await expect(partners).toContainText("Sep 19 – Sep 23");
+    await expect(partners).toContainText("Blake Brown — 1 of 5 days");
+    await expect(partners).toContainText("Casey Clark — 0 of 5 days");
     await expect(
-      partners.getByLabel("Blake Brown, September 15, checked"),
+      partners.getByLabel("Blake Brown, September 23, checked"),
     ).toBeVisible();
     await expect(
-      partners.getByLabel("Blake Brown, September 14, not checked"),
+      partners.getByLabel("Blake Brown, September 22, not checked"),
     ).toBeVisible();
     await expect(
-      partners.getByLabel("Blake Brown, September 16, not yet"),
-    ).toBeVisible();
+      partners.getByLabel("Blake Brown, September 18, not checked"),
+    ).toHaveCount(0);
   }
 });
 
@@ -226,4 +234,35 @@ test("HIST-08 an invalid month falls back to the current month", async ({
       page.getByRole("heading", { name: "September 2026" }),
     ).toBeVisible();
   }
+});
+
+test("HIST-09 days outside the contract are grayed out; in-contract empty days are not counting", async ({
+  page,
+  signInAs,
+}) => {
+  await resetAt(page, FIXED_NOW);
+  await signInAs("casey");
+  await page.goto("/history");
+  const outside = page.getByLabel("September 18, outside contract");
+  await expect(outside).toBeVisible();
+  await expect(outside).toHaveClass(/bg-border\/50/);
+  await expect(page.getByLabel("September 20, not counting")).toBeVisible();
+});
+
+test("HIST-10 your history links to the export; a teammate's does not", async ({
+  page,
+  signInAs,
+}) => {
+  await resetAt(page, FIXED_NOW);
+  await signInAs("casey");
+  await page.goto(teamPath("avery", "/history"));
+  await expect(page.getByRole("link", { name: "Export report" })).toHaveCount(
+    0,
+  );
+  await page.goto("/history");
+  await page.getByRole("link", { name: "Export report" }).click();
+  await expect(page).toHaveURL(/\/export$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Goal report" }),
+  ).toBeVisible();
 });

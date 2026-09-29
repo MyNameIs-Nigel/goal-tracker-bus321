@@ -18,7 +18,7 @@
 - **Then** the route is fetched again using Next.js `retry`
 
 ### LAUNCH-03 Accessible controls and colours
-- **Given** any student on the main routes — their own `/today`, `/goals`, `/contract`, `/history`, and a teammate's `/team/<id>`, `/team/<id>/contract`, `/team/<id>/history` — at phone and desktop sizes, with demo data loaded
+- **Given** any student on the main routes — their own `/today`, `/goals`, `/contract`, `/history`, `/export`, and a teammate's `/team/<id>`, `/team/<id>/contract`, `/team/<id>/history` — at phone and desktop sizes, with demo data loaded
 - **Then** controls have labels, keyboard focus is visible, and automated WCAG AA checks pass in light and dark modes
 - **And** buttons, selects and navigation targets are at least 44px high, calendar links at least 44px wide, with no horizontal page overflow at 375px
 - **And** a skip link leads to the main content

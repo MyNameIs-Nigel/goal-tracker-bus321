@@ -87,3 +87,49 @@ export async function listCheckinsBetween(
       ),
     );
 }
+
+/** Check-ins on the team from `start` to `end`, with each checker's name (EXP-11). */
+export async function listCheckinNotesBetween(
+  teamId: string,
+  start: string,
+  end: string,
+): Promise<
+  { userId: string; name: string; date: string; note: string | null }[]
+> {
+  return db
+    .select({
+      userId: checkins.userId,
+      name: user.name,
+      date: checkins.date,
+      note: checkins.note,
+    })
+    .from(checkins)
+    .innerJoin(user, eq(checkins.userId, user.id))
+    .where(
+      and(
+        eq(checkins.teamId, teamId),
+        gte(checkins.date, start),
+        lte(checkins.date, end),
+      ),
+    );
+}
+
+/** Check-ins `userId` made from `start` to `end`, with each team's owner (EXP-12). */
+export async function listCheckinsMadeBetween(
+  userId: string,
+  start: string,
+  end: string,
+): Promise<{ ownerName: string; date: string; note: string | null }[]> {
+  return db
+    .select({ ownerName: user.name, date: checkins.date, note: checkins.note })
+    .from(checkins)
+    .innerJoin(teams, eq(checkins.teamId, teams.id))
+    .innerJoin(user, eq(teams.ownerId, user.id))
+    .where(
+      and(
+        eq(checkins.userId, userId),
+        gte(checkins.date, start),
+        lte(checkins.date, end),
+      ),
+    );
+}

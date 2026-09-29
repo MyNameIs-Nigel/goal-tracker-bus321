@@ -11,6 +11,8 @@ import {
   formatMonthLong,
   formatMonthName,
   formatMonthShort,
+  formatMonthShortYear,
+  isoWeekday,
   monthKey,
 } from "@/lib/dates";
 import { countsInPeriod, periodFor, periodStartsInMonth } from "@/lib/periods";
@@ -30,15 +32,26 @@ export type CalendarCell = {
   status: DayStatus;
   label: string;
   isToday: boolean;
+  /** HIST-09 — before contract_start or after contract_end. */
+  outsideContract: boolean;
 };
 
 export type PeriodRow = { title: string; period: string; status: Status };
 
-export type PartnerMonth = PartnerSummary & {
+export type PartnerDay = {
+  date: string;
+  state: "checked" | "missed" | "future";
+};
+
+/** HIST-06 — a partner over the contract window, as a contribution grid. */
+export type PartnerRecord = PartnerSummary & {
   checked: number;
   elapsed: number;
-  days: ("checked" | "missed" | "future")[];
+  /** One column per Mon–Sun week; `null` for days outside the window. */
+  weeks: (PartnerDay | null)[][];
 };
+
+export type DateWindow = { start: string; end: string };
 
 export type HistoryData = {
   month: string;
@@ -50,7 +63,8 @@ export type HistoryData = {
   exceptions: string[];
   completion: { done: number; total: number; percent: number } | null;
   periods: PeriodRow[];
-  partners: PartnerMonth[];
+  partnerRange: string;
+  partners: PartnerRecord[];
 };
 
 /** A check-in on the team as /history needs it. */
@@ -110,13 +124,16 @@ export function buildCalendar(month: string): (string | null)[][] {
   return weeks;
 }
 
-function periodLabel(cadence: ViewGoal["cadence"], start: string): string {
+export function periodLabel(
+  cadence: ViewGoal["cadence"],
+  start: string,
+): string {
   if (cadence === "daily") return formatMonthShort(start);
   if (cadence === "weekly") return `Week of ${formatMonthShort(start)}`;
   return formatMonthName(start);
 }
 
-function exceptionDates(exception: ExceptionRecord): string {
+export function exceptionDates(exception: ExceptionRecord): string {
   return exception.startsOn === exception.endsOn
     ? formatMonthShort(exception.startsOn)
     : `${formatMonthShort(exception.startsOn)} – ${formatMonthShort(exception.endsOn)}`;
@@ -147,17 +164,26 @@ export function buildHistoryData({
   const monthEnd = endOfMonth(monthStart);
   const dailyGoals = goals.filter((goal) => goal.cadence === "daily");
   const statusArgs = { today, contract, completions, exceptions };
+  const partnerSpan = partnerWindow(month, today, contract);
 
   const weeks = buildCalendar(month).map((week) =>
     week.map((date): CalendarCell | null => {
       if (!date) return null;
       const status = dayStatusFor({ date, dailyGoals, ...statusArgs });
+      const outsideContract = isOutsideContract(date, contract);
       return {
         date,
         day: Number(date.slice(8)),
         status,
-        label: `${formatMonthLong(date)}, ${status === "none" ? "not counting" : status}`,
+        label: `${formatMonthLong(date)}, ${
+          outsideContract
+            ? "outside contract"
+            : status === "none"
+              ? "not counting"
+              : status
+        }`,
         isToday: date === today,
+        outsideContract,
       };
     }),
   );
@@ -236,8 +262,9 @@ export function buildHistoryData({
     exceptions: exceptionLabels,
     completion,
     periods,
-    partners: partnerMonths({
-      month,
+    partnerRange: windowLabel(partnerSpan),
+    partners: partnerRecords({
+      span: partnerSpan,
       today,
       partners,
       checkins,
@@ -245,47 +272,80 @@ export function buildHistoryData({
   };
 }
 
-/** HIST-06 / PCI-09 — N of M elapsed days per partner of the team, plus the day strip. */
-function partnerMonths({
-  month,
+/** HIST-09 — a date the contract doesn't cover (never, for an unset side). */
+export function isOutsideContract(date: string, contract: Contract): boolean {
+  return (
+    (contract.contractStart !== null &&
+      compareDates(date, contract.contractStart) < 0) ||
+    (contract.contractEnd !== null &&
+      compareDates(date, contract.contractEnd) > 0)
+  );
+}
+
+/**
+ * HIST-06 — the contract; with no end, through today (at least its start
+ * day); with no start, month `M`.
+ */
+export function partnerWindow(
+  month: string,
+  today: string,
+  contract: Contract,
+): DateWindow {
+  const { contractStart: start, contractEnd: end } = contract;
+  if (start === null) {
+    const monthStart = `${month}-01`;
+    return { start: monthStart, end: endOfMonth(monthStart) };
+  }
+  if (end !== null) return { start, end };
+  return { start, end: compareDates(today, start) < 0 ? start : today };
+}
+
+/** "Sep 19 – Nov 19", with years only when the window crosses one. */
+function windowLabel({ start, end }: DateWindow): string {
+  return start.slice(0, 4) === end.slice(0, 4)
+    ? `${formatMonthShort(start)} – ${formatMonthShort(end)}`
+    : `${formatMonthShortYear(start)} – ${formatMonthShortYear(end)}`;
+}
+
+/** HIST-06 / PCI-09 — N of M elapsed window days per partner, plus the grid. */
+function partnerRecords({
+  span,
   today,
   partners,
   checkins,
 }: {
-  month: string;
+  span: DateWindow;
   today: string;
   partners: readonly PartnerSummary[];
   checkins: readonly MonthCheckin[];
-}): PartnerMonth[] {
-  const monthStart = `${month}-01`;
-  const monthEnd = endOfMonth(monthStart);
-  const daysInMonth = daysBetween(monthStart, monthEnd) + 1;
-  const elapsed =
-    month < monthKey(today)
-      ? daysInMonth
-      : month === monthKey(today)
-        ? Number(today.slice(8))
-        : 0;
+}): PartnerRecord[] {
+  const gridStart = periodFor("weekly", span.start).start;
+  const gridEnd = periodFor("weekly", span.end).end;
 
   return partners.map((person) => {
     const checkedDates = new Set(
-      checkins
-        .filter((c) => c.userId === person.id && c.date.startsWith(month))
-        .map((c) => c.date),
+      checkins.filter((c) => c.userId === person.id).map((c) => c.date),
     );
-    const days: PartnerMonth["days"] = [];
+    const weeks: (PartnerDay | null)[][] = [];
     let checked = 0;
-    for (let i = 0; i < daysInMonth; i++) {
-      const date = addDays(monthStart, i);
-      if (i >= elapsed) {
-        days.push("future");
-      } else if (checkedDates.has(date)) {
-        days.push("checked");
-        checked++;
+    let elapsed = 0;
+    for (let d = gridStart; compareDates(d, gridEnd) <= 0; d = addDays(d, 1)) {
+      if (isoWeekday(d) === 1) weeks.push([]);
+      const week = weeks[weeks.length - 1];
+      if (compareDates(d, span.start) < 0 || compareDates(d, span.end) > 0) {
+        week.push(null);
+      } else if (compareDates(d, today) > 0) {
+        week.push({ date: d, state: "future" });
       } else {
-        days.push("missed");
+        elapsed++;
+        if (checkedDates.has(d)) {
+          checked++;
+          week.push({ date: d, state: "checked" });
+        } else {
+          week.push({ date: d, state: "missed" });
+        }
       }
     }
-    return { ...person, checked, elapsed, days };
+    return { ...person, checked, elapsed, weeks };
   });
 }

@@ -14,6 +14,7 @@ The plan for taking this from a blank `create-next-app` to a live tracker at `ht
 | 3 | Partners, contract & vision, history | ✅ done 2026-09-16 |
 | 4 | Launch polish | ✅ done 2026-09-17 |
 | 5 | **Teams** — every student owns a team | 🔄 in progress (started at Nigel's request 2026-09-24) |
+| — | **Export** — printable report + CSV; history grays out days outside the contract and shows partners over the whole contract | 🔄 in progress (Nigel's request 2026-09-29) |
 | — | Release | whenever Nigel shares the link |
 
 Claude updates this table as phases start and finish (✅ done, 🔄 in progress).
@@ -54,6 +55,18 @@ The planned owner-reminders phase was dropped ([ADR-0005](adr/0005-every-student
 - [ ] Every scenario ID in the specs has a passing test (`npm run trace`), and all checks are green in CI. — locally: 113/113 scenarios named; lint, format, typecheck, 281 unit/component tests, build, and 172 Playwright tests (desktop + Pixel 7) green against a real Postgres. CI pending on the PR.
 - [x] Locally, with demo data, at phone width: sign in → tick goals → check in on both teammates happens on `/today` alone (DT-17). — verified in both Playwright projects and by eye at iPhone width, light and dark.
 - [ ] Merged and deployed: the production build applied `0001_teams`, and `/` still serves the sign-in page.
+
+---
+
+## Export (Nigel's request, 2026-09-29)
+
+**Goal:** turning in the accountability report takes one tap. `/export` renders the student's whole record for their contract (or a custom range) as a document the browser saves as a PDF, with the same data as a CSV; it's reached from `/history` and the profile menu. Alongside it, the history calendar grays out days outside the contract with a solid gray dot so it's clear they never count, and the history's Partners block covers the whole contract as a GitHub-style contribution grid instead of the month.
+
+**Specs:** [export](specs/export.md) (new), [history](specs/history.md) (HIST-01's legend, HIST-06's contract-wide partner grid, HIST-09, HIST-10), [partner-check-ins](specs/partner-check-ins.md) (PCI-09).
+
+**Exit criteria:**
+- [ ] Every `EXP-*` and the new `HIST-*` scenarios have passing tests, and all checks are green in CI. — locally: 140/140 scenarios named; lint, format, typecheck, 338 unit/component tests, build, and 200 Playwright tests (desktop + Pixel 7) green against a real Postgres. CI pending on the PR.
+- [x] At phone width, with demo data: `/history` → **Export report** → **Download PDF** opens the print dialog with just the report; **Download CSV** downloads the file. — verified by EXP-13/EXP-14 in both Playwright projects, and by eye at 390px in light and dark, plus the print render.
 
 ---
 
