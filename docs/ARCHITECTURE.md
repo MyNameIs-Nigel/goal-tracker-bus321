@@ -29,6 +29,8 @@ app/
     goals/page.tsx             /goals — your goals
     contract/page.tsx          /contract — your vision, contract and dates
     history/page.tsx           /history?month=2026-09 — your month
+    export/page.tsx            /export?from=…&to=…&given=1 — your printable report (Save as PDF)
+    export/csv/route.ts        /export/csv?… — the same report as a CSV download
     team/[teamId]/             a teammate's team, read-only (your own id redirects to the routes above)
       page.tsx                 /team/<id> — their today
       day/[date]/page.tsx      /team/<id>/day/2026-09-19
@@ -44,10 +46,11 @@ lib/
   periods.ts · status.ts       period, counting, status, failures, streak — pure
   sanitize.ts                  HTML allowlist for documents — pure
   paths.ts                     a team's page URLs (own routes vs. /team/<id>) — pure
-  view/                        pure view-models: day, teammates, history, contract
+  view/                        pure view-models: day, teammates, history, contract, export (+ its CSV)
   queries/                     reads, always scoped to a team
   team-page.ts                 which team a page shows: yours, or a teammate's (404 / redirect-to-own)
   day-page.ts · contract-page.ts · history-page.ts   one loader per page type, shared by your routes and team routes
+  export-page.ts               the export's rows for the session's own team (docs/specs/export.md)
   actions/                     Server Actions (one file per feature), each calls requireUser first
 db/
   schema.ts                    Drizzle schema (source of truth for tables)
