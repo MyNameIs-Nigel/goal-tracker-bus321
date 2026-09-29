@@ -10,6 +10,7 @@ One file per decision (or per batch of related decisions), numbered, never edite
 | [0004](0004-preview-has-no-database.md) | Preview deployments have no database — production only | Accepted 2026-09-17 |
 | [0005](0005-every-student-owns-a-team.md) | Every student owns a team; no roles, no reminders | Accepted 2026-09-24 |
 | [0006](0006-admin-can-disable-users.md) | An admin, stored in the database, can disable users | Accepted 2026-09-28 |
+| [0007](0007-new-accounts-start-disabled.md) | New accounts start disabled until the admin enables them | Accepted 2026-09-29 |
 
 ## Template
 

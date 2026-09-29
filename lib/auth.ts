@@ -8,13 +8,13 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { eq } from "drizzle-orm";
 import { nextCookies } from "better-auth/next-js";
 
 import { db } from "@/db/client";
 import * as schema from "@/db/schema";
 
 import { isE2eEnabled } from "./e2e";
+import { startsDisabled } from "./new-user";
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -53,16 +53,15 @@ export const auth = betterAuth({
     },
   },
   databaseHooks: {
-    session: {
+    user: {
       create: {
-        // ADM-04: a disabled user gets no new session.
-        before: async (newSession) => {
-          const [row] = await db
-            .select({ disabled: schema.user.disabled })
-            .from(schema.user)
-            .where(eq(schema.user.id, newSession.userId));
-          return row?.disabled ? false : undefined;
-        },
+        // ADM-08: new accounts wait for the admin (ADR-0007).
+        before: async (newUser) => ({
+          data: {
+            ...newUser,
+            disabled: await startsDisabled(newUser.email, isE2eEnabled()),
+          },
+        }),
       },
     },
   },
